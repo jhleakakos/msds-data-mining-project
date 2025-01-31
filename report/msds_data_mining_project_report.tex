@@ -12,18 +12,49 @@
 \renewcommand{\shortauthors}{Leakakos}
 
 \begin{abstract}
-One to two paragraph executive summary of project and presentation.
+    American higher education is coming to an impasse. Colleges and universities have seen enrollments grow as larger generations of Americans made their way through postsecondary education. Schools increased their academic offerings and student life activities. Faculty and staff members filled the needs for supporting increasing student enrollments. But there was an issue hiding behind all of this growth: what happens when student enrollments systematically fall?
 
-One to two paragraph executive summary of project and presentation.
+    The United States has seen declines in high school graduates and, therefore, reduced college applicants. Depending on who you listen to, this ranges from a demographic cliff ushering in an emergency in higher education to a slower decline in higher education enrollments that will play out over years. It is unclear what effect this will have on the near future of higher education. One expected consequence of these declines is that we will see smaller amounts of higher education data relative to previous years.
+
+    This project focuses on synthesizing Integrated Postsecondary Education Data System data from the National Center for Education Statistics. This data covers a vast range of information about higher education, and, while we will not look at student-level data --- one of the key areas for synthetic data after the demographic cliff hits --- we will start by generating synthetic data based on subsets of institution-related data. The goal is to show how we might address the diminishing data after the demographic cliff in order to continue higher education data analysis that relies on larger datasets.
 \end{abstract}
 
 \maketitle
 
 \section{Introduction}
-What is the problem?
-Why is it important?
-Limitations of existing solutions
-What is your (potential) contribution?
+
+    American higher education saw growing enrollments throughout the latter half of the 1900s and moving into the 200s. This resulted in increases in the number of higher education institutions (HEIs) in the country, including public and private colleges and universities. These HEIs span from major research institutions down to small liberal arts schools. This has also resulted in increases in the number of faculty and staff to support growing enrollments. The general trend in higher education was growth.
+
+    The issue is that this growth in enrollments was not to last. For years now, we have seen predicted and then realized declines in high school graduates along with the respective drop in higher education enrollments. Higher education's future was based on growth, but then the key aspect of that growth --- more students than in previous years --- fell away. Estimates for what comes next vary. Some see a demographic cliff and a looming emergency in which declining enrollments result in catastrophic cuts at and closures of HEIs. It is true that we have seen increasing numbers of HEI closures in recent years ~\cite{hechingercollegeclosures}. But others see the trend as a more gradual decline, giving higher education time to adapt and shrink accordingly. \cite{insidehighereddemographiccliff}
+
+    There are many interesting research questions related to the future of higher education, appropriate and responsible responses to enrollment declines, and other aspects of this impending reality. There are also questions related to the shifting of costs from public funding to individual students, the shift in emphasis to higher education as workforce preparation, the modern publishing culture in higher education and how that affects the student experience, and more.
+
+    But, this project will instead focus on a different aspect of declining higher education enrollments: reduced data. As student enrollments drop and HEIs close or shrink, we are likely to see reduced amounts of higher education data available for analysis, prediction, evaluation, and more. Not all analyses in higher education need larger amounts of data, but we want to explore how we could supplement real data with synthetic data in cases where we need more overall data. The risk is that, without sufficient data, we may not be able to support students and HEIs as well as we could with larger amounts of data.
+
+    We will take a look at Integrated Postsecondary Education Data System (IPEDS) data from the National Center for Education Statistics (NCES), housed in the U.S. Department of Education's Institute of Education Sciences (IES). NCES gathers, prepares, and makes available data along with providing analysis on education data. IPEDS is a subset of NCES data that focuses on postsecondary or higher education data.
+
+    We will focus on a subset of IPEDS data related to institutions, enrollments, and graduation rates. For each of these three domains, IPEDS offers multiple files covering different information, and it provides these for multiple years. Our goal will be to identify one or more analysis or modeling datasets that we can pull out of a larger extract-transform-load (ETL) pipeline with multiple repeated steps. We will focus on pulling IPEDS data, loading it into a relational database in its raw form, preprocessing it in the database with a series of automated processes, storing the analysis or modeling datasets in the database, and then using those datasets to synthesize new data.
+
+   To address the issue of the amount of data available to us, we will leverage generative modeling to produce synthetic tabular data. The goal is to build a system that can demonstrate how we might leverage synthetic higher education data to fill in datasets in the future as they potentially shrink due to the issues described above.
+
+    We are focusing on institution-level data from IPEDS, but future iterations of this work could pivot to generating synthetic student-level data.
+
+    Synthetic data is ``artificially generated [data] that resemble[s] the actual data -- more precisely, having similar statistical properties'' ~\cite[p. 1]{decristofaro2024syntheticdatamethodsuse}. If we generate synthetic IPEDS data that shares the same properties as the real data, then we can combine the real and synthetic data, or, alternatively, we can create an indefinite amount of synthetic data, to increase the amount of data we have to work with.
+
+    Building and training models to generate synthetic tabular data -- tabular meaning data in table form with rows and columns -- is notoriously difficult. We will leverage existing models and research for the synthetic generation aspect of the pipeline in particular. We will lean on the research in the Modeling Tabular Data Using Conditional GAN paper ~\cite{DBLP:journals/corr/abs-1907-00503} and the associated Python libraries they make available at the Synthetic Data Vault Project ~\cite{sdv}.
+
+    While we will not dive too deep into the working of the generative models, it can be useful to understand the complexity in these and why we are leveraging existing implementations. The research paper focuses on their conditional tabular generative adversarial network (CTGAN) approach to generative modeling. This paper provides some examples of the difficulty of modeling for tabular data. Section 3 speaks to some of these issues:
+
+    \begin{itemize}
+        \item Mixed data types: tabular data can have features with continuous, nominal, ordinal, binary, or other data. Generative modeling for these datasets require handling mixtures of data types in one model.
+        \item Non-Gaussian distributions: continuous data can be non-Gaussian, so attempts to standardize or min-max continuous features can result in issues such as vanishing or exploding gradients.
+        \item Multimodal distributions: continuous features may have more than one mode, resulting in the need to model more than one mode with approaches such as kernel density estimation and Gaussian mixture models.
+        \item Imbalance in categories for categorical features: categories that have smaller representation may not be modeled as accurately as those with larger representation, resulting in the need for extra steps to handle this disparity. \cite{DBLP:journals/corr/abs-1907-00503}
+    \end{itemize}
+
+    We do not need to go into the inner workings of these issues. Instead, they are meant to provide a snippet of the difficulties we would need to handle if building our own generative models. In order to remain focused on the pipeline in this project, we will, as said above, leverage existing generative modeling libraries available through the Synthetic Data Vault Project ~\cite{sdv}.
+
+    To summarize, this project will work with IPEDS data with its focus on higher education and will explore how we can synthesize more IPEDS data to address potential future lack-of-data issues due to declining higher education enrollments.
 
 \section{Related Work}
 What has been done already?
@@ -35,6 +66,11 @@ How does your project build upon prior work?
 \cite{DBLP:journals/corr/abs-1907-00503}
 
 \cite{decristofaro2024syntheticdatamethodsuse}
+
+\cite{sdv}
+
+\cite{ipeds}
+
 
 \section{Proposed Work}
 Dataset, tools
@@ -66,6 +102,13 @@ Future work (when finished)
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{msds_data_mining_project_report}
+
+
+\appendix
+
+\section{Technical Details}
+
+    Need some details plz
 
 \end{document}
 \endinput
