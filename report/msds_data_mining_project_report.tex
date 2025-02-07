@@ -1,6 +1,7 @@
 \documentclass[sigconf, authorversion, nonacm]{acmart}
 
-\settopmatter{printacmref=false}
+\settopmatter{printacmref=false} % remove acm info that clutters things up for this project
+\settopmatter{printfolios=true} % add page numbers
 
 \citestyle{acmauthoryear}
 
@@ -54,23 +55,43 @@
 
     We do not need to go into the inner workings of these issues. Instead, they are meant to provide a snippet of the difficulties we would need to handle if building our own generative models. In order to remain focused on the pipeline in this project, we will, as said above, leverage existing generative modeling libraries available through the Synthetic Data Vault Project ~\cite{sdv}.
 
-    To summarize, this project will work with IPEDS data with its focus on higher education and will explore how we can synthesize more IPEDS data to address potential future lack-of-data issues due to declining higher education enrollments.
+    Finally, the ultimate goal is to glean insights from the IPEDS data, real or synthesized. The synthetic data will ideally give us the same overall insights as the real data. For this task, we can turn to traditional data mining techniques: classification, clustering, association mining, rule mining, or others. If we can determine trends now, we may be able to utilize synthetic data in the future with dwindling real data to confirm continued trends or to identify changes in those trends.
+
+    To summarize, this project will work with IPEDS data with its focus on higher education and will explore how we can synthesize more IPEDS data to address potential future lack-of-data issues due to declining higher education enrollments, and we will use these data to tackle standard data mining questions related but focused on higher education data.
 
 \section{Related Work}
-What has been done already?
-Group by category
-    - E.g., tools, methods, results
-How does your project build upon prior work?
-    - E.g., utilize, compare, improve, new knowledge
+    My literature review did not return as much related to data mining in higher education as I expected to see, and I was unable to find any research closely related to what we explore in this project. The bulk of what I found is related to different evaluation methods for student learning. Examples are looking at adaptive learning --- learning that dynamically adjusts to students based on different input metrics --- and performance prediction --- trying to determine how a student will end up performing by, for example, graduation. While these are interesting, they do not focus on the type of data that we see in IPEDS.
 
-\cite{DBLP:journals/corr/abs-1907-00503}
+    Note that some of these papers were already referenced in the introduction above.
 
-\cite{decristofaro2024syntheticdatamethodsuse}
+    To start with, ~\cite{sdp} by the Harvard Strategic Data Project (SDP) fellowship program speaking about the importance of analytics in higher education data. There are larger questions that this paper raises about why higher education appears behind other areas in terms of leveraging data and more advanced analytics.
 
-\cite{sdv}
+    Another example of an interesting paper that I want to highlight is ~\cite{Hassna02102023} that explores utilizing big data and analytics for higher education data. The catch is that this paper is from 2022, and it is talking about introducing big data and analytics in higher education, mirroring some of what we see from the SDP paper above in hinting that higher education may be behind other areas in terms of utilizing data. But, during the literature review, I checked out big data and data mining and related terms in other domains, and I did not tend to see papers talking about how big data and analytics have yet to be realized in those domains.
 
-\cite{ipeds}
+    Next is a handful of papers characterizing what I mostly found: research into specific uses of analytics and mining to hone in on an aspect of student evaluation. Since our focus on this project is on institution-level information with IPEDS data, we are zooming out quite a bit from what these papers cover, but these are useful in terms of getting bearings for research on higher education data mining, though none of these papers are overly useful for the specific use case in this project.
 
+    First is ~\cite{studentbehavioranalytics} that talks about using higher education big data to evaluate student behavior. This paper repeats a similar claim to ~\cite{Hassna02102023} above in that higher education is missing work in big data.
+
+    \cite{Okewu10112021} explores using artificial neural networks for higher education data mining. It provides a review of studies from 2010 through 2018 and related to education data mining focused on adaptive learning. Adaptive learning is the use of learner data to customize learning dynamically to those learners. So, we are looking at yet another narrower use case for a specific type of higher education learner data. This paper again mirrors some of the sentiments from earlier papers in that it hints that higher education data usage, and big data usage in particular, should be further along than where it is currently at (as of the paper's publishing in 2021), closer to where we see big data usage in other domains, but it is not.
+
+    \cite{10.3389/fpsyg.2021.698490} investigates education data mining techniques for student performance prediction. There is not a ton more to add here aside from it being another narrower use case looking at student-level data, not the larger institution-level data that we explore in this project, but it is yet another example to learn from in terms of research using higher education data.
+
+
+    \cite{ALDOWAH201913} digs into education data mining, similar to the last paper, but this time focused on learning analytics. It reviews studies in different domains related to learning analytics. The key takeaway is that it is yet another study that looks into different outcomes within specific areas of higher education data, but it is not close enough to what we are exploring in this project to lean on.
+
+    Finally, ~\cite{https://doi.org/10.1155/2022/8924028} looks at predicting higher education student performance, typically at graduation, and it evaluates different predictive methods. Again, this is interesting for reviewing some current literature, but it will not apply to the work we do in this project.
+
+    We will also include a quick review of a few papers related to synthetic data and synthetic tabular data generative modeling. We will utilize synthetic data, but we are not building it from scratch, so we will not dwell on the deep learning implementation details of these papers.
+
+    \cite{decristofaro2024syntheticdatamethodsuse} provides an overview of synthetic data that is helpful for understanding the need for, uses of, and issues with synthetic data. We will use a production library for synthetic modeling, so we will not address these concerns directly except as parameters to the model(s) we decide to use in the pipeline, but it is good to understand the kinds of trade-offs that are inherent in generative modeling for synthetic tabular data.
+
+    \cite{DBLP:journals/corr/abs-1811-11264} introduces table GAN (TGAN), a GAN-based approach to generating synthetic tabular data. This model uses recurrent neural networks. Each of the generative modeling papers I reviewed have extensive coverage of how to handle concerns in the data. One interesting one to highlight, among a few, from this paper and demonstrating the type of complexity that goes into this type of modeling is the focus on multimodal continuous data. This is continuous data that has more than one value that stands out as more represented in the data, showing up as more than one peak when you plot a histogram of the data. To get around this, the researchers use Gaussian kernel density estimation (KDE) to estimate the distribution of the data. Each KDE can model one mode of the data. We then use Gaussian mixture methods (GMMs) to sample from more than one distribution -- each distribution coming from one of those built with the KDEs -- to recreate the actual distribution. We then sample from this GMM when we are generating a value for that feature, and this gets baked into the modeling, training, and generation processes. This is just one example to demonstrate why we are veering away from building our own generative models in this project.
+
+    \cite{DBLP:journals/corr/abs-1907-00503}, by the same authors as the previous TGAN paper, provides more consideration for nuances and potential issues in the data along with adding a deep conditional GAN (DCGAN) as part of their new conditional tabular GAN (CTGAN) model. DCGAN generally is a GAN architecture that uses convolutional neural networks (CNNs) in both the generator and discriminator. One example of extra data considerations is that CTGAN handles severe imbalance in categorical features. We will not worry about the detail of this model either, but it is potentially one that we will use with the modeling library we introduce next
+
+    \cite{sdv} is our project of choice for generative modeling. It is produced by the authors of the previous two papers above. Similar to those two papers, we will not dig too far into the workings of the libraries in this project. We mostly need a solution that can plug into the synthetic tabular data generative modeling step(s) in the pipeline. Note that both TGAN and CTGAN are dedicated repositories in the Synthetic Data Vault project. There is another main library -- sdv -- that provides easier-to-use versions of the models. There is also SDGym, a synthetic data evaluation library that we can lean on to determine how well our generative modeling is doing.
+
+    With a sweep through some research papers out of the way, I did not find any papers directly applicable to what we are looking at in this project. So, the contribution that we provide is to start a discussion around data mining for IPEDS data along with generative modeling for IPEDS data. We build on the ideas in the papers above -- the general approaches to analysis in the earlier papers, and the use of synthetic tabular data for the latter papers.
 
 \section{Proposed Work}
 Dataset, tools
@@ -93,6 +114,11 @@ Project timeline
     - Determine if you need to do less or can do more in the given time
 Potential challenges
 Alternative approaches and backup plan
+
+\subsection{Questions for the Reader}
+    \begin{itemize}
+        \item Is adding in the synthetic data component too much? I've been exploring this is personal and school projects as well as using it at work, so it's fresh on my mind to keep testing out, but it may be overkill for this project.
+    \end{itemize}
 
 \section{Conclusion}
 Conclusion
