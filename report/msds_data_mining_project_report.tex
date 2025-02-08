@@ -94,18 +94,40 @@
     With a sweep through some research papers out of the way, I did not find any papers directly applicable to what we are looking at in this project. So, the contribution that we provide is to start a discussion around data mining for IPEDS data along with generative modeling for IPEDS data. We build on the ideas in the papers above -- the general approaches to analysis in the earlier papers, and the use of synthetic tabular data for the latter papers.
 
 \section{Proposed Work}
-Dataset, tools
-Main tasks
-    - E.g., statistical analysis, visualization
-    - E.g., data preprocessing, warehousing
-    - E.g., specific questions, patterns to explore or model
+
+    For me, at this stage, this is the section that I am looking to narrow down a bit (and I am open to suggestions from readers). I have a couple of ideas planned for the work in this project, and I am looking to lean into my background with the architecting of data systems to build out a wider pipeline.
+
+    We are exploring IPEDS data. We went over the value of that data earlier. To snag the data, we will use some Python scripts to download the data from the IPEDS website and store it in a relational database. This database will run locally in Docker, and the configuration files needed to set up the database will exist in this repository, both for the Docker setup as well as for the database work. IPEDS data already comes in a relatively relational form, so there may not be too much work for the initial load into the database.
+
+    From there, we may leverage the database further to provide preprocessing in the database. One easy way to do this is to set up insert triggers to handle the first pass of standardizing the data into a consistent format or doing some early combining and mutating of data before looking at larger exploratory data analysis (EDA). This may work, but we may also want to pull the data out of the database to go through a more standard EDA. But, there is an option here to mimic what we may need in a larger production pipeline with leveraging database tech at this stage.
+
+    Next we go through a full EDA process, this time with a mind towards how we may want to use the data later in the pipeline rather than the earlier EDA based around simple cleanup. This step will happen outside of the database, so we will look at Python scripts here. At first, this is likely easier with the read-eval-print loop (REPL) functionality of a notebook, though we do not want notebooks in our final pipeline until much closer to the end in production. We need the automation power in scripts instead of notebooks.
+
+    After this round of EDA and any further preprocessing we glean from it, we can then think about warehousing. We will shift the data back into the warehouse, likely just matching the new form of the data to what we need for modeling, but we can decide later on the form of the data in the warehouse. For the scope of this project, we will likely end up with a bespoke warehouse built to immediate modeling or analysis needs rather than a broader warehouse set up in something like a full star schema.
+
+    The next step is to explore the outputs of the pipeline. Two directions stand out to me. One is modeling. Especially when working with larger datasets such as those we deal with in data mining, prediction and clustering jump out as obvious candidates, with clustering typically being much more complicated to set up. The second direction is to explore some data mining-specific approaches and algorithms such as similarity measures, apriori, FP-growth, association or rule mining, or others. Honestly, at this stage, any of these could be valid, and I prefer to start working with the data some before deciding on outputs at this stage, so this is left purposely broad.
+
+    One piece I am pulling to the end here is the synthetic data component. I am already wondering if adding in synthetic data is too much. I have been exploring synthetic data in personal and school projects as well as using it at work, so it is fresh on my mind, and I would like to keep testing it out, but it may be overkill for this project. If we do keep synthetic data, then it makes sense to simplify some of the rest of the pipeline to keep more of the scope focused on the synthetic data modeling. This means we probably focus more at the end of the pipeline on evaluating the quality of the synthetic data and demoing how we would pull insights out of the synthetic dataset, but we probably look at just one approach for that last piece instead of going through a heavy refinement of the other outputs.
+
+    The areas I am keeping an eye on here are the extra loop of preprocessing in the database, the inclusion of synthetic data, and narrowing down the final outputs. The ideas in this section are fine for now, but we need to make these more concrete as we begin digging into the data.
 
 \section{Evaluation}
+
+    Tests for synthetic data
+    data mining algorithms
+
+
+
+
 Evaluation metrics
     - Effectiveness
     - Efficiency
 Experimental setup
 Methods to compare
+
+
+
+
 
 \section{Discussion}
 Project timeline
@@ -115,10 +137,7 @@ Project timeline
 Potential challenges
 Alternative approaches and backup plan
 
-\subsection{Questions for the Reader}
-    \begin{itemize}
-        \item Is adding in the synthetic data component too much? I've been exploring this is personal and school projects as well as using it at work, so it's fresh on my mind to keep testing out, but it may be overkill for this project.
-    \end{itemize}
+
 
 \section{Conclusion}
 Conclusion
