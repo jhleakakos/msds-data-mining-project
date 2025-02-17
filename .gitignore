@@ -2,14 +2,19 @@
 data/
 sigconf/
 
-report/*
-!report/msds_data_mining_project_report.bib
-!report/msds_data_mining_project_report.tex
+artifacts/*
+!artifacts/report
+!artifacts/slides
+artifacts/report/*
+artifacts/slides/*
+!artifacts/report/msds_data_mining_project_report.bib
+!artifacts/report/msds_data_mining_project_report.tex
+!artifacts/slides/higher_ed_synthesized.pdf
 
 # The next three lines let you exclude the rendered PDF
-#!report/out
-#report/out/*
-#!/report/out/msds_data_mining_project_report.pdf
+#!artifacts/report/out
+#artifacts/report/out/*
+#!artifacts/report/out/msds_data_mining_project_report.pdf
 
 
 # Byte-compiled / optimized / DLL files
