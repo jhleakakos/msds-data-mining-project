@@ -16,6 +16,8 @@ artifacts/slides/*
 #artifacts/report/out/*
 #!artifacts/report/out/msds_data_mining_project_report.pdf
 
+src/playground.ipynb
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
