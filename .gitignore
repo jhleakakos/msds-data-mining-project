@@ -20,6 +20,7 @@ artifacts/slides/*
 #!artifacts/report/out/msds_data_mining_project_report.pdf
 
 src/playground.ipynb
+src/.env
 
 
 # Byte-compiled / optimized / DLL files
