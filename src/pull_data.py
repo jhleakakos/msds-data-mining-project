@@ -10,7 +10,7 @@ import io
 
 ipeds_data_base_url = 'https://nces.ed.gov/ipeds/datacenter/data'
 
-def download_files(files_list, path_files):
+def download_files(files_list, path_files, path_dictionaries):
     for f in files_list:
         # Data files
         r = requests.get(f'{ipeds_data_base_url}/{f}.zip')
@@ -24,12 +24,12 @@ def download_files(files_list, path_files):
         r = requests.get(f'{ipeds_data_base_url}/{f}_DICT.zip')
         if r.ok:
             with zipfile.ZipFile(io.BytesIO(r.content), 'r') as zipz:
-                zipz.extractall(path_files)
+                zipz.extractall(path_dictionaries)
         else:
             print(f'bad file: {f}_DICT')
 
 
-def load_data():
+def pull_data():
     files_institutional_characteristics = [
         'HD2023'
         , 'IC2023'
@@ -38,7 +38,8 @@ def load_data():
         , 'IC2023_CAMPUSES'
     ]
     path_files_institutional_characteristics = '../data/institutional_characteristics'
-    download_files(files_institutional_characteristics, path_files_institutional_characteristics)
+    path_dictionaries_institutional_characteristics = '../dictionaries/institutional_characteristics'
+    download_files(files_institutional_characteristics, path_files_institutional_characteristics, path_dictionaries_institutional_characteristics)
 
     files_enrollment = [
         'EFFY2023'
@@ -47,7 +48,8 @@ def load_data():
         , 'EFIA2023'
     ]
     path_files_enrollments = '../data/enrollments'
-    download_files(files_enrollment, path_files_enrollments)
+    path_dictionaries_enrollments = '../dictionaries/enrollments'
+    download_files(files_enrollment, path_files_enrollments, path_dictionaries_enrollments)
 
     files_completions = [
         'C2023_A'
@@ -56,10 +58,12 @@ def load_data():
         , 'C2023DEP'
     ]
     path_files_completions = '../data/completions'
-    download_files(files_completions, path_files_completions)
+    path_dictionaries_completions = '../dictionaries/completions'
+    download_files(files_completions, path_files_completions, path_dictionaries_completions)
 
     files_all_survey_components = [
         'FLAGS2023'
     ]
     path_files_all_survey_components = '../data/all_survey_components'
-    download_files(files_all_survey_components, path_files_all_survey_components)
+    path_dictionaries_all_survey_components = '../dictionaries/all_survey_components'
+    download_files(files_all_survey_components, path_files_all_survey_components, path_dictionaries_all_survey_components)
