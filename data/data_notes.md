@@ -1,5 +1,7 @@
 This file holds notes while looking through all the data files loaded in load_data.py. This info comes from the IPEDS data dictionaries.
 
+The summaries here are subsets of each file, so these are closer to what we will keep, especially at the start of exploring the data.
+
 ## All Survey Components
 
 ### Flags2023

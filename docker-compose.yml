@@ -2,7 +2,9 @@ name: higher-ed-synthesized
 
 services:
   db:
-    image: postgres:latest
+    build: .
+    image: higher-ed-synthesized-db
+#    image: postgres:latest
     container_name: msds_data_mining_project
     volumes:
       - msds_data_mining_project:/var/lib/postgresql/data
