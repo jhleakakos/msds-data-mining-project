@@ -33,9 +33,9 @@ def pull_data():
     files_institutional_characteristics = [
         'HD2023'
         , 'IC2023'
-        , 'IC2023_AY'
+        # , 'IC2023_AY'
         , 'IC2023_PY'
-        , 'IC2023_CAMPUSES'
+        # , 'IC2023_CAMPUSES'
     ]
     path_files_institutional_characteristics = '../data/institutional_characteristics'
     path_dictionaries_institutional_characteristics = '../dictionaries/institutional_characteristics'
@@ -61,9 +61,9 @@ def pull_data():
     path_dictionaries_completions = '../dictionaries/completions'
     download_files(files_completions, path_files_completions, path_dictionaries_completions)
 
-    files_all_survey_components = [
-        'FLAGS2023'
-    ]
-    path_files_all_survey_components = '../data/all_survey_components'
-    path_dictionaries_all_survey_components = '../dictionaries/all_survey_components'
-    download_files(files_all_survey_components, path_files_all_survey_components, path_dictionaries_all_survey_components)
+    # files_all_survey_components = [
+    #     'FLAGS2023'
+    # ]
+    # path_files_all_survey_components = '../data/all_survey_components'
+    # path_dictionaries_all_survey_components = '../dictionaries/all_survey_components'
+    # download_files(files_all_survey_components, path_files_all_survey_components, path_dictionaries_all_survey_components)

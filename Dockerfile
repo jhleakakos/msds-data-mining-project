@@ -2,4 +2,4 @@ FROM postgres:latest
 
 EXPOSE 5432
 WORKDIR /usr/src/data
-ADD ../data/ .
+ADD ../data/pg_data .
