@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# Utility script in case you want to copy the data files into pg_data and then perform any preprocessing before
+# loading into the Docker container.
+
 dest_dir="../data/pg_data/"
 
 # Copy files into pg_data before modifying
