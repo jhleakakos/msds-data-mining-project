@@ -1,5 +1,6 @@
 -- The SQL here is a subset of the tables and columns from data_notes.md.
 -- We will treat the first layer of loading data in as a data lake and worry about preprocessing after.
+-- We get the column headers with ../get_col_headers.sh since there is a mismatch between the actual headers and the dictionaries.
 
 
 -- Institutional Characteristics
