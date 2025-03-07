@@ -22,7 +22,7 @@ select
     , effydlev
     , count(*)
 from
-    effy_dist
+    data_lake.effy_dist
 group by
     unitid
     , effydlev

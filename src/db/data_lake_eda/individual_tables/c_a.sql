@@ -13,4 +13,4 @@ CTOTALT: awards/degrees conferred to all recipients
 select
     *
 from
-    c_a
+    data_lake.c_a

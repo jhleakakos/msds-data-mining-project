@@ -17,4 +17,4 @@ select
     , count(distinct unitid)
     -- *
 from
-    efia
+    data_lake.efia

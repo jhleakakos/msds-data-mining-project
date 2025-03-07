@@ -24,4 +24,4 @@ PPMAST: number of programs offered at post-master''s certificate level
 select
     *
 from
-    cdep
+    data_lake.cdep

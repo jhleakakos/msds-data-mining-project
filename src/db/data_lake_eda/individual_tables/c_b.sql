@@ -10,4 +10,4 @@ CSTOTLT: number of students receiving awards/degrees
 select
     *
 from
-    c_b
+    data_lake.c_b

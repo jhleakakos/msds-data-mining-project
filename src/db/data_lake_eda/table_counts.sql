@@ -4,23 +4,23 @@ select
 from
     (
         -- Institutional Characteristics
-        select 'hd' table, count(*) from hd
-        union select 'ic', count(*) from ic
-        union select 'ic_py', count(*) from ic_py
+        select 'hd' table, count(*) from data_lake.hd
+        union select 'ic', count(*) from data_lake.ic
+        union select 'ic_py', count(*) from data_lake.ic_py
 
         -- Enrollments
 
-        union select 'effy', count(*) from effy
-        union select 'effy_dist', count(*) from effy_dist
-        union select 'effy_hs', count(*) from effy_hs
-        union select 'efia', count(*) from efia
+        union select 'effy', count(*) from data_lake.effy
+        union select 'effy_dist', count(*) from data_lake.effy_dist
+        union select 'effy_hs', count(*) from data_lake.effy_hs
+        union select 'efia', count(*) from data_lake.efia
 
         -- Completions
 
-        union select 'c_a', count(*) from c_a
-        union select 'c_b', count(*) from c_b
-        union select 'c_c', count(*) from c_c
-        union select 'cdep', count(*) from cdep
+        union select 'c_a', count(*) from data_lake.c_a
+        union select 'c_b', count(*) from data_lake.c_b
+        union select 'c_c', count(*) from data_lake.c_c
+        union select 'cdep', count(*) from data_lake.cdep
     ) t
 order by
     case

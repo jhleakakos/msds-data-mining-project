@@ -14,4 +14,4 @@ select
     , count(unitid)
     -- *
 from
-    ic
+    data_lake.ic

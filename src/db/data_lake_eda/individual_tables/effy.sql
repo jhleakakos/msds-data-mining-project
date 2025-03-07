@@ -25,7 +25,7 @@ select
 
     *
 from
-    effy
+    data_lake.effy
 -- group by
     -- unitid
 --     , effyalev

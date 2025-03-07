@@ -10,4 +10,4 @@ EFYTOTLT: total dual credit students
 select
     *
 from
-    effy_hs
+    data_lake.effy_hs

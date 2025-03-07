@@ -5,8 +5,8 @@
 
 -- Institutional Characteristics
 
-drop table if exists hd;
-create table hd
+drop table if exists data_lake.hd;
+create table data_lake.hd
 (
     year int
     , unitid varchar(6)
@@ -27,8 +27,8 @@ create table hd
     , primary key (year, unitid)
 );
 
-drop table if exists ic;
-create table ic
+drop table if exists data_lake.ic;
+create table data_lake.ic
 (
     year int
     , unitid varchar(6)
@@ -37,8 +37,8 @@ create table ic
     , primary key (year, unitid)
 );
 
-drop table if exists ic_py;
-create table ic_py
+drop table if exists data_lake.ic_py;
+create table data_lake.ic_py
 (
     year int
     , unitid varchar(6)
@@ -61,8 +61,8 @@ create table ic_py
 
 -- Enrollments
 
-drop table if exists effy;
-create table effy
+drop table if exists data_lake.effy;
+create table data_lake.effy
 (
     year int
     , unitid varchar(6)
@@ -72,8 +72,8 @@ create table effy
     , primary key (year, unitid, effyalev)
 );
 
-drop table if exists effy_dist;
-create table effy_dist
+drop table if exists data_lake.effy_dist;
+create table data_lake.effy_dist
 (
     year int
     , unitid varchar(6)
@@ -85,8 +85,8 @@ create table effy_dist
     , primary key (year, unitid, effydlev)
 );
 
-drop table if exists effy_hs;
-create table effy_hs
+drop table if exists data_lake.effy_hs;
+create table data_lake.effy_hs
 (
     year int
     , unitid varchar(6)
@@ -94,8 +94,8 @@ create table effy_hs
     , primary key (year, unitid)
 );
 
-drop table if exists efia;
-create table efia
+drop table if exists data_lake.efia;
+create table data_lake.efia
 (
     year int
     , unitid varchar(6)
@@ -109,8 +109,8 @@ create table efia
 
 -- Completions
 
-drop table if exists c_a;
-create table c_a
+drop table if exists data_lake.c_a;
+create table data_lake.c_a
 (
     year int
     , unitid varchar(6)
@@ -121,8 +121,8 @@ create table c_a
     , primary key (year, unitid, cipcode, majornum, awlevel, ctotalt)
 );
 
-drop table if exists c_b;
-create table c_b
+drop table if exists data_lake.c_b;
+create table data_lake.c_b
 (
     year int
     , unitid varchar(6)
@@ -130,8 +130,8 @@ create table c_b
     , primary key (year, unitid)
 );
 
-drop table if exists c_c;
-create table c_c
+drop table if exists data_lake.c_c;
+create table data_lake.c_c
 (
     year int
     , unitid varchar(6)
@@ -140,8 +140,8 @@ create table c_c
     , primary key (year, unitid, awlevelc)
 );
 
-drop table if exists cdep;
-create table cdep
+drop table if exists data_lake.cdep;
+create table data_lake.cdep
 (
     year int
     , unitid varchar(6)

@@ -29,7 +29,7 @@ select
     -- instnm
     -- , count(instnm) -- 6,055
 from
-    hd
+    data_lake.hd
 -- group by
     -- instnm
 -- having

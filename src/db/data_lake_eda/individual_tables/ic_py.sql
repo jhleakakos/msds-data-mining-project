@@ -19,4 +19,4 @@ select
     , count(unitid)
     -- *
 from
-    ic_py
+    data_lake.ic_py

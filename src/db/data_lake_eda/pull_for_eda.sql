@@ -43,25 +43,25 @@ select
     , sum(coalesce(c_b.cstotlt, 0)) completions_number_students
 from
     hd
-    left outer join ic
+    left outer join data_lake.ic
         on hd.year = ic.year
         and hd.unitid = ic.unitid
-    left outer join ic_py
+    left outer join data_lake.ic_py
         on hd.year = ic_py.year
         and hd.unitid = ic_py.unitid
-    left outer join effy
+    left outer join data_lake.effy
         on hd.year = effy.year
         and hd.unitid = effy.unitid
-    left outer join effy_dist
+    left outer join data_lake.effy_dist
         on hd.year = effy_dist.year
         and hd.unitid = effy_dist.unitid
-    left outer join effy_hs
+    left outer join data_lake.effy_hs
         on hd.year = effy_hs.year
         and hd.unitid = effy_hs.unitid
-    left outer join efia
+    left outer join data_lake.efia
         on hd.year = efia.year
         and hd.unitid = efia.unitid
-    left outer join c_b
+    left outer join data_lake.c_b
         on hd.year = c_b.year
         and hd.unitid = c_b.unitid
 where
