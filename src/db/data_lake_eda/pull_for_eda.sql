@@ -42,7 +42,7 @@ select
     , sum(coalesce(efia.ftedpp, 0)) fte_reported_doctor_professional_practice
     , sum(coalesce(c_b.cstotlt, 0)) completions_number_students
 from
-    hd
+    data_lake.hd
     left outer join data_lake.ic
         on hd.year = ic.year
         and hd.unitid = ic.unitid
