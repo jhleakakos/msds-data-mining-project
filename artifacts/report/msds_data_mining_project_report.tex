@@ -5,6 +5,8 @@
 
 %\citestyle{acmauthoryear}
 
+\usepackage{hyperref}
+
 \begin{document}
 
 \title{Higher Education Synthesized}
@@ -29,7 +31,7 @@
 
     But, this project will instead focus on a different aspect of declining higher education enrollments: reduced data. As student enrollments drop and HEIs close or shrink, we are likely to see reduced amounts of higher education data available for analysis, prediction, evaluation, and more. Not all analyses in higher education need larger amounts of data, but we want to explore how we could supplement real data with synthetic data in cases where we need more overall data. The risk is that, without sufficient data, we may not be able to support students and HEIs as well as we could with larger amounts of data.
 
-    We will take a look at Integrated Postsecondary Education Data System (IPEDS) data from the National Center for Education Statistics (NCES), housed in the U.S. Department of Education's Institute of Education Sciences (IES). NCES gathers, prepares, and makes available data along with providing analysis on education data. IPEDS is a subset of NCES data that focuses on postsecondary or higher education data. \cite{ipeds}
+    We will take a look at Integrated Postsecondary Education Data System (IPEDS) data from the National Center for Education Statistics (NCES), housed in the U.S. Department of Education's Institute of Education Sciences (IES). NCES gathers, prepares, and makes available data along with providing analysis on education data. IPEDS is a subset of NCES data that focuses on postsecondary or higher education data. IPEDS data is large, complex, and valuable, so it also lends itself well to data mining. \cite{ipeds}
 
     We will focus on a subset of IPEDS data related to institutions, enrollments, and graduation rates. For each of these three domains, IPEDS offers multiple files covering different information, and it provides these for multiple years. Our goal will be to identify one or more analysis or modeling datasets that we can pull out of a larger extract-transform-load (ETL) pipeline with multiple repeated steps. We will focus on pulling IPEDS data, loading it into a relational database in its raw form, preprocessing it in the database with a series of automated processes, storing the analysis or modeling datasets in the database, and then using those datasets to synthesize new data.
 
@@ -73,7 +75,6 @@
 
     \cite{10.3389/fpsyg.2021.698490} investigates education data mining techniques for student performance prediction. There is not a ton more to add here aside from it being another narrower use case looking at student-level data, not the larger institution-level data that we explore in this project, but it is yet another example to learn from in terms of research using higher education data.
 
-
     \cite{ALDOWAH201913} digs into education data mining, similar to the last paper, but this time focused on learning analytics. It reviews studies in different domains related to learning analytics. The key takeaway is that it is yet another study that looks into different outcomes within specific areas of higher education data, but it is not close enough to what we are exploring in this project to lean on.
 
     Finally, ~\cite{https://doi.org/10.1155/2022/8924028} looks at predicting higher education student performance, typically at graduation, and it evaluates different predictive methods. Again, this is interesting for reviewing some current literature, but it will not apply to the work we do in this project.
@@ -91,7 +92,6 @@
     With a sweep through some research papers out of the way, I did not find any papers directly applicable to what we are looking at in this project. So, the contribution that we provide is to start a discussion around data mining for IPEDS data along with generative modeling for IPEDS data. We build on the ideas in the papers above -- the general approaches to analysis in the earlier papers, and the use of synthetic tabular data as described in the latter papers.
 
 \section{Proposed Work}
-
     The general approach for the work in this project is to leverage Python scripts to move information around, a relational database running in Docker for any pieces of the pipeline that would normally use a database, and notebooks as needed for exploratory and visualization purposes.
 
     To snag the IPEDS data, we will use Python scripts to download the data from the IPEDS website and store it in a relational database, possibly storing the data on disk as a stepping stone. The database will run locally in Docker. IPEDS data already comes in a relatively relational form, so there may not be too much work for the initial load into the database. Much of the data we end up working with in the real world lives in a database, so this recreates that reality here.
@@ -107,6 +107,84 @@
     I have been exploring synthetic data in personal and school projects as well as using it at work, so it is fresh on my mind, and I would really like to include it here, but, as said above, it is in tension with what we might see in a standard data mining pipeline. We will need to pull data out of the warehouse, import the synthetic data libraries, run the generative modeling, and then possibly load the synthetic data back into the database. This area has a bit of a question mark as to how much scope it will take up. I feel comfortable with how the generative modeling will work, but we will need to explore performance with IPEDS data in particular.
 
     The areas I am keeping an eye on here are the extra loop of preprocessing in the database, the inclusion of synthetic data, and narrowing down the final outputs. The ideas in this section are fine for now, but we need to make these more concrete as we begin digging into the data.
+
+    \subsection{updates for proposed work}
+        Is synthetic data generative modeling enough, or do we need to keep some extra modeling piece? If the latter, can it be more of a demo or POC than real analysis?
+
+        Can reference technical details section in appendix to fill in from here
+
+        Why synthesize the IPEDS data we use instead of student-level data, the area where we will see a real drop off in coming years? How are aggregates in IPEDS different from student-level data?
+
+        handling different null flags or binary encodings even in same files (good use for slide, talking about data issues in general)
+
+        talk about dimensional-ish modeling (good use for slide)
+
+        goal of testing out mini data mart layer as well for whichever subset we want to synthesize
+
+        call out emphasis on db work since we are mimicing a real-world mining pipeline that will likely rely heavily on db tech
+
+        talk about slowly changing dimensions for institutional characteristics between years in particular and modeling decisions related to that
+
+    \subsection{IPEDS Data}
+        IPEDS has a ton of data available, so our first major task is to narrow that down to what we want to explore in this project. The approach we take is to pull in a subset of the three domains of IPEDS data we identified earlier: institutional characteristics, enrollments, and completions. There are a ton of trade-offs in terms of pulling in more data or trimming down even to where we do.
+
+        My primary worry with IPEDS data is its complexity. Two examples are as follows. A number of files in the domains we explore have more than 100 features, and there are many more files across domains that we do not explore, so there are potential concerns related to the size of the data. Next, we have similar features across files. For example, we have breakdowns by race/ethnicity and gender and across different values for the primary attribute in files, and considering ways to combine these or compare across them are more complicated than they may seem at first.
+
+        The more data we include now, the harder the first pass of modeling will be, so we take the strategy of building out a full pipeline with a small subset of data in such a way that it can be expanded later without too much extra effort. Further, since our primary goal is generating synthetic data, we are less worried about finding the most impactful IPEDS features in terms of meaning, so we have some flexibility for the dataset that we choose for now.
+
+        \subsubsection{Chosen Domains}
+
+            Institutional characteristics are the foundation of IPEDS data, providing information related to higher education institutions.
+
+            Next, we use 12-month enrollment data, looking at unduplicated enrollment counts for students who start anytime in a 12-month period and including both degree- and nondegree-seeking students. IPEDS also have fall enrollment data, but we choose the wider timeframe. Since we also include completions instead of graduations, we capture students who take a wider range of programs. 12-month enrollment will better capture nondegree students in particular.
+
+            Finally, we use completions, looking at students who complete degree or nondegree credentials. This differs from graduation rates that measure students who receive degrees and excluding students who attain nondegree credentials, certificates being a common nondegree credential.
+
+
+
+
+
+            The goal for now is to continue to narrow down data within each of these domains, building towards a working dataset. The general idea is to have one row per institution, and we will need to group across rows in some files to make that happen. For example, some files have more than one row per institution, so we need to decide if it is appropriate to smoosh all of the rows per insititution together in those files and sum column values or if we need a more complicated approach. We figure these steps out doing the first round of EDA in the database.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        \subsubsection{What's Left from IPEDS}
+
+            IPEDS includes other domains of data, including:
+
+            \begin{itemize}
+                \item Cost
+                \item Financial aid
+                \item Finance
+                \item Admissions
+                \item Outcome Measures
+                \item Graduation rates: students who graduate with a degree within 150\% of the estimated time for program completion
+                \item Graduation rates 200: students who graduate with a degree within 200\% of the estimated time for program completion
+                \item Fall enrollment (as discussed above)
+            \end{itemize}
+
+            Each of these domains has multiple data files, similar to the three domains we are working with. The numbers of questions we can ask of IPEDS data multiplies when we pull in these other domains, but we will save those questions for future iterations of this project.
+
+            These other domains may also pose questions related to synthesizing data for them.
+
+        \subsubsection{Leftover Thoughts}
+
+            NCES provides preprocessing before making IPEDS data files available, including tasks such as imputation for missing values, creation of new features for estimated values to compare to reported values, and more. We will not worry about these initial preprocessing steps for this iteration of the project.
+
+            For each of the files we keep, we remove gender and race/ethnicity disaggregates. These are important features for answering meaning questions with IPEDS, but we remove them in order to simplify the analysis scope in this iteration of the project.
+
+            For a more detailed summary of the IPEDS domains we work with, please read data/data\_notes.md in the GitHub repository.
 
 \section{Evaluation}
     The first evaluations will capture how similar the synthetic data is to the real data. We will explore the evaluation metrics in the Synthetic Data Vault Project, and, on top of those metrics, a couple of extra candidates that stand out are per-attribute comparisons and machine learning score. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as mean or standard deviation, and determine the quality of the synthetic data based on how close these measures are across the datasets. Machine learning score trains classifiers on the real and synthetic datasets and compares the performance of those models. For example, if we use both classifiers to check something like accuracy or F1 score on a held-out test set, we can evaluate how similar the synthetic data is to the real data based on comparing those scores.
@@ -138,6 +216,10 @@
 
     To wrap up with an explicit acknowledgment of risks for my projects, the biggets worry is that the scope grows to an unruly size, so there are a number of comments in this report speaking to ways to keep that in check, spanning from stricter time scoping to simplifying the data to sticking with easier-to-implement modeling.
 
+    \subsubsection{Warehousing}
+    \subsubsection{Generative Modeling}
+    \subsubsection{Data Analysis or Business Intelligence}
+
 \section{Conclusion}
     There is not much to conclude at the moment. We will fill this in as we start doing the data work of the project. What I expect to see here is that we trimmed down the IPEDS data, scoped the use case for the project to be a bit narrower, spent more time explore synthetic data and its associated generative modeling, and picked a simpler overall output, likely sticking supervised modeling. For a surprise finish, we may end up deciding to pull some data out and run it through a separate business intelligence tool like Tableau with the idea that end users of the production pipeline may want to leverage tools such as that for their purposes, though this would only come into play if we find that the project turns out to be too quick and simple to get through.
 
@@ -149,7 +231,168 @@
 \appendix
 
 \section{Technical Details}
-    Leaving this as a placeholder to pull the technical details out of the narrative above but still keep it available for readers.
+
+
+
+
+
+    figure out what should go here vs in proposed work section
+
+
+
+
+
+
+    This section will provide more details about the technical work, if of interest. You can find the source code for this project at \href{https://github.com/jhleakakos/msds-data-mining-project}.
+
+    src/orchestrator.py is the primary Python file, controlling the general flow of the pipeline. We do not need a full orchestration solution for this project, so we will recreate the idea, as needed, in this file, not worrying too much about automation but instead using this utility to help iterative work. One area of growth for larger or more complex systems would be to build a more complex orchestration file and infrastructure or incorporate orchestration software instead.
+
+    The first milestone is getting the subset of IPEDS data that we want to work with loaded into the database. Since many real-world pipelines will start with data in a database or loading raw data into a database, we will recreate that here. For now, we run the database scripts manually.
+
+    \begin{itemize}
+        \item Download IPEDS flat files from the IPEDS website using src/pull_data.py. This script has code to pull all the files in the three domains of IPEDS data that we explore in this project. I originally downloaded and looked through all these files and their associated dictionaries, then reducing down to the files and features we want to explore. We comment out files that we do not plan to use in this iteration of the project. This script is easy to modify to pull in other IPEDS data flat files.
+        \item Set up PostgreSQL to run in Docker. The root of the repository includes a Dockerfile that primarily copies the IPEDS files into the container along with a Docker Compose file that configures the remainder of the container and data volume.
+        \item There are structured query language (SQL) scripts to create the datalake database, create the data lake tables, and copy in full IPEDS files as a stepping stone to pulling out the features in each file that we want to work keep.
+        \item We load the data lake by using the \textit{copy} command. This takes in a comma-separated values (CSV) file and loads it into the specified table. This is purposely different than a process like reading the data into Python structures, opening a database connection, and using Python to write to the database. The idea here is that this method will let us load arbitrarily large datasets through a more efficient database utility.
+        \item For now, we run the SQL scripts manually, though we could look to automate these later, likely through storing the data lake loading functionality as a stored procedure or setting up triggers to copy data around.
+    \end{itemize}
+
+    At this stage, we are ready to pivot to EDA and take a closer look at the subset of IPEDS data that we hope to eventually synthesize and feed into modeling.
+
+\section{IPEDS Fields}
+
+    The summaries for files and fields here come from each file's associated data dictionary. Note that the biggest difference between the list here and the larger summary in data/data_notes.md in the source repository is that we drop gender and race/ethnicity disaggregates here.
+
+    Domain: Institutional Characteristics
+
+    HDyyyy: directory information for institutions
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item INSTNM: institution name
+        \item STABBR: state abbreviation
+        \item OBEREG: Bureau of Economic Analysis regions, grouped by homogeneity of states based on economic, demographic, social, and cultural characteristics
+        \item HLOFFER: highest level of credential offered
+        \item DEGGRANT: does the institution offer degrees (as compared to non-degree credentials)
+        \item HBCU: is the institution an HBCU
+        \item TRIBAL: is this a tribal institution
+        \item LOCALE: geographic status of school
+        \item CLOSEDAT: date institution closed
+        \item CYACTIVE: is institution active in current year
+        \item INSTCAT: category of institution regarding credentials offered
+        \item C21BASIC: alternative to Carnegie Classification and last updated in 2021
+        \item INSTSIZE: enrollment size in 2019
+        \item CBSA: core based statistical area
+    \end{itemize}
+
+    ICyyyy: program and award level offerings, control, and affiliation of institutions
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item CNTLAFFI: institution control or affiliation (public, private non-profit, etc)
+        \item OPENADMP: open admission policy
+    \end{itemize}
+
+    ICyyyy_PY: student charges by program
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item PRGMOFR: number of programs offered at institution
+        \item CIPCODE1: CIP code of the largest program
+        \item CIPCODE2: CIP code of the second largest program
+        \item CIPCODE3: CIP code of the third largest program
+        \item CIPCODE4: CIP code of the fourth largest program
+        \item CIPCODE5: CIP code of the fifth largest program
+        \item CIPCODE6: CIP code of the sixth largest program
+    \end{itemize}
+
+    Domain: Enrollments
+
+    EFFYyyyy: unduplicated 12-month enrollment headcount
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item EFFYALEV: level, full- and part-time status, degree- or nondegree-seeking status, and year of study of student enrolled for credit
+        \item EFFYLEV: level of study
+        \item EFYTOTLT: total students enrolled for credit
+    \end{itemize}
+
+    EFFYyyyy_DIST: unduplicated 12-month enrollment headcount by distance education status and level of student
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item EFFYDLEV: level and degree- or nondegree-seeking status of students enrolled for credit
+        \item EFYDETOT: all students enrolled for credit (sum of next three columns)
+        \item EFYDEEXC: students enrolled only in distance education courses
+        \item EFYDESOM: students enrolled in at least one distance education course but not enrolled exclusively in distance education courses
+        \item EFYDENON: students not enrolled in any distance education courses
+    \end{itemize}
+
+    EFFYyyyy_HS: unduplicated 12-month enrollment headcount of dual credit students; subset of the nondegree and non-certificate-seeking students from EFFY2023
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item EFYTOTLT: total dual credit students
+    \end{itemize}
+
+    EFIAyyyy: instructional activity measured in total credit and/or contact hours delivered by institutions in 12-month period, used to derive 12-month full time equivalent (FTE) enrollments
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item EFTEUG: estimated FTE undergraduate enrollment
+        \item EFTEGD: estimated FTE graduate enrollment
+        \item FTEUG: reported FTE undergraduate enrollment
+        \item FTEGD: reported FTE graduate enrollment
+        \item FTEDPP: doctor's-professional practice FTE
+    \end{itemize}
+
+    Domain: Completions
+
+    Cyyyy_A: number of awards by type of program, level of award (degree or certificate), first or second major, by race/ethnicity, and by gender
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item CIPCODE: CIP code
+        \item MAJORNUM: first or second major
+        \item AWLEVEL: award level code
+        \item CTOTALT: awards/degrees conferred to all recipients
+    \end{itemize}
+
+    Cyyyy_B: number of students who completed any degree or certificate by race/ethnicity and gender
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item CSTOTLT: number of students receiving awards/degrees
+    \end{itemize}
+
+    Cyyyy_C: number of students receiving a degree or certificate by level of award and race/ethnicity, gender, and age
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item AWLEVELC: award level
+        \item CSTOTLT: number of students receiving awards/degrees
+    \end{itemize}
+
+    CyyyyDEP: number of programs offered by type of program, award level, and distance education status
+
+    \begin{itemize}
+        \item UNITID: unique institutional identifier
+        \item CIPCODE: six-digit CIP code
+        \item PTOTAL: number of programs offered across all award levels
+        \item PTOTALDE: number of programs that can be completed entirely online across all award levels
+        \item PASSOC: number of programs offered at associate's degree level
+        \item PBACHL: number of programs offered at bachelor's degree level
+        \item PMASTR: number of programs offered at master's degree level
+        \item PDOCRS: number of programs offered at doctor's research/scholarship degree level
+        \item PDOCPP: number of programs offered at doctor's professional practice degree level
+        \item PDOCOT: number of programs offered at doctor's other degree level
+        \item PCERT1A: number of programs offered at certificate level of less than 300 clock hours, 9 semester/trimester credit hours, or 13 quarter credit hours
+        \item PCERT1B: number of programs offered at certificate level of 300-800 clock hours, 9-29 semester/trimester credit hours, or 13-44 quarter credit hours
+        \item PCERT2: number of programs offered at certificate level of one year but less than two years
+        \item PCERT4: number of programs offered at certificate level of two years but less than four years
+        \item PPBACC: number of programs offered at postbaccalaureate certificate level
+        \item PPMAST: number of programs offered at post-master's certificate level
+    \end{itemize}
 
 \end{document}
 \endinput
