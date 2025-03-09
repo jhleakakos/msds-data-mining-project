@@ -27,7 +27,8 @@ insert into data_warehouse.fct_enrollment
 select
     di.year
     , di.institution_id
-    , sum(coalesce(effy.efytotlt, 0)) enrollment
+    , coalesce(effy.efytotlt, 0) enrollment
+    -- , sum(coalesce(effy.efytotlt, 0)) enrollment
     -- , sum(coalesce(effy_dist.efydetot, 0)) enrollment_for_credit
     -- , sum(coalesce(effy_dist.efydeexc, 0)) enrollment_only_distance_education
     -- , sum(coalesce(effy_dist.efydesom, 0)) enrollment_some_but_not_exclusively_distance_education
@@ -44,9 +45,11 @@ from
     -- left outer join data_lake.effy_hs
     --     on di.year = effy_hs.year
     --     and di.unitid = effy_hs.unitid
-group by
-    di.year
-    , di.institution_id
+where
+    effy.effylev = ' 1'
+-- group by
+--     di.year
+--     , di.institution_id
 ;
 
 drop table if exists data_warehouse.fct_fte;
