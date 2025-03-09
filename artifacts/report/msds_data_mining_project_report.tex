@@ -225,6 +225,10 @@
 
     As for future iterations of the project, I expect that the biggest area of grows would be to incorporate more IPEDS data to answer a broader range of questions. I do not expect radical changes in the pipeline architecture in next iterations of the project, but I do expect additions and expansions in order to accommodate particular questions of interest inherent in the new data.
 
+    \subsection{additions for conclusion}
+
+    This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{msds_data_mining_project_report}
 
@@ -260,7 +264,6 @@
     At this stage, we are ready to pivot to EDA and take a closer look at the subset of IPEDS data that we hope to eventually synthesize and feed into modeling.
 
 \section{IPEDS Fields}
-
     The summaries for files and fields here come from each file's associated data dictionary. Note that the biggest difference between the list here and the larger summary in data/data_notes.md in the source repository is that we drop gender and race/ethnicity disaggregates here.
 
     Domain: Institutional Characteristics
@@ -393,6 +396,28 @@
         \item PPBACC: number of programs offered at postbaccalaureate certificate level
         \item PPMAST: number of programs offered at post-master's certificate level
     \end{itemize}
+
+    \subsection{IPEDS Fields for Modeling}
+        These are the fields we pull from the files above to create the modeling dataset.
+
+        \begin{itemize}
+            \item year: we snag this when reading in files and add it as needed throughout the warehouse
+            \item HDyyyy.UNITID: unique institutional identifier
+            \item HDyyyy.INSTNM: institution name
+            \item HDyyyy.STABBR: state abbreviation
+            \item HDyyyy.OBEREG: Bureau of Economic Analysis regions, grouped by homogeneity of states based on economic, demographic, social, and cultural characteristics
+            \item HDyyyy.HLOFFER: highest level of credential offered
+            \item HDyyyy.DEGGRANT: does the institution offer degrees (as compared to non-degree credentials)
+            \item HDyyyy.HBCU: is the institution an HBCU
+            \item HDyyyy.TRIBAL: is this a tribal institution
+            \item HDyyyy.LOCALE: geographic status of school
+            \item HDyyyy.CLOSEDAT: date institution closed
+            \item HDyyyy.INSTCAT: category of institution regarding credentials offered
+            \item HDyyyy.CBSA: core based statistical area
+            \item ICyyyy.CNTLAFFI: institution control or affiliation (public, private non-profit, etc)
+            \item EFFYyyyy.EFYTOTLT: total students enrolled for credit
+            \item Cyyyy_B.CSTOTLT: number of students receiving awards/degrees
+        \end{itemize}
 
 \end{document}
 \endinput
