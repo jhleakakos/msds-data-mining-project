@@ -22,6 +22,7 @@ artifacts/slides/*
 
 src/notebooks/playground.ipynb
 src/notebooks/iframe_figures/
+src/notebooks/img
 src/notebooks/models/
 src/.env
 
