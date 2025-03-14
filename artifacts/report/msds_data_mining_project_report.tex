@@ -29,7 +29,7 @@
 
     There are many interesting research questions related to the future of higher education, appropriate and responsible responses to enrollment declines, and other aspects of this impending reality. There are also questions related to the shifting of costs from public funding to individual students, the shift in emphasis to higher education as workforce preparation, the modern publishing culture in higher education and how that affects the student experience, and more.
 
-    But, this project will instead focus on a different aspect of declining higher education enrollments: reduced data. As student enrollments drop and HEIs close or shrink, we are likely to see reduced amounts of higher education data available for analysis, prediction, evaluation, and more. Not all analyses in higher education need larger amounts of data, but we want to explore how we could supplement real data with synthetic data in cases where we need more overall data. The risk is that, without sufficient data, we may not be able to support students and HEIs as well as we could with larger amounts of data.
+    This project will instead focus on a different aspect of declining higher education enrollments: reduced data. As student enrollments drop and HEIs close or shrink, we are likely to see reduced amounts of higher education data available for analysis, prediction, evaluation, and more. Not all analyses in higher education need larger amounts of data, but we want to explore how we could supplement real data with synthetic data in cases where we need more overall data. The risk is that, without sufficient data, we may not be able to support students and HEIs as well as we could with larger amounts of data.
 
     We will take a look at Integrated Postsecondary Education Data System (IPEDS) data from the National Center for Education Statistics (NCES), housed in the U.S. Department of Education's Institute of Education Sciences (IES). NCES gathers, prepares, and makes available data along with providing analysis on education data. IPEDS is a subset of NCES data that focuses on postsecondary or higher education data. IPEDS data is large, complex, and valuable, so it also lends itself well to data mining. \cite{ipeds}
 
@@ -39,9 +39,9 @@
 
     We are focusing on institution-level data from IPEDS, but future iterations of this work could pivot to generating synthetic student-level data.
 
-    Synthetic data is ``artificially generated [data] that resemble[s] the actual data -- more precisely, having similar statistical properties'' ~\cite[p. 1]{decristofaro2024syntheticdatamethodsuse}. If we generate synthetic IPEDS data that shares the same properties as the real data, then we can combine the real and synthetic data, or, alternatively, we can create an indefinite amount of synthetic data, to increase the amount of data we have to work with.
+    Synthetic data is ``artificially generated [data] that resemble[s] the actual data --- more precisely, having similar statistical properties'' ~\cite[p. 1]{decristofaro2024syntheticdatamethodsuse}. If we generate synthetic IPEDS data that shares the same properties as the real data, then we can combine the real and synthetic data, or, alternatively, we can create an indefinite amount of synthetic data, to increase the amount of data we have to work with.
 
-    Building and training models to generate synthetic tabular data -- tabular meaning data in table form with rows and columns -- is notoriously difficult. We will leverage existing models and research for the synthetic generation aspect of the pipeline in particular. We will lean on the research in the Modeling Tabular Data Using Conditional GAN paper ~\cite{DBLP:journals/corr/abs-1907-00503} and the associated Python libraries they make available at the Synthetic Data Vault Project ~\cite{sdv}.
+    Building and training models to generate synthetic tabular data --- tabular meaning data in table form with rows and columns --- is notoriously difficult. We will leverage existing models and research for the synthetic generation aspect of the pipeline in particular. We will lean on the research in the Modeling Tabular Data Using Conditional GAN paper ~\cite{DBLP:journals/corr/abs-1907-00503} and the associated Python libraries they make available at the Synthetic Data Vault Project ~\cite{sdv}.
 
     While we will not dive too deep into the working of the generative models, it can be useful to understand the complexity in these and why we are leveraging existing implementations. The research paper focuses on their conditional tabular generative adversarial network (CTGAN) approach to generative modeling. This paper provides some examples of the difficulty of modeling for tabular data. Section 3 speaks to some of these issues:
 
@@ -54,9 +54,9 @@
 
     We do not need to go into the inner workings of these issues. Instead, they are meant to provide a snippet of the difficulties we would need to handle if building our own generative models. In order to remain focused on the pipeline in this project, we will, as said above, leverage existing generative modeling libraries available through the Synthetic Data Vault Project ~\cite{sdv}.
 
-    Finally, the ultimate goal is to glean insights from the IPEDS data, real or synthesized. The synthetic data will ideally give us the same overall insights as the real data. For this task, we can turn to traditional data mining techniques: classification, clustering, association mining, rule mining, or others. If we can determine trends now, we may be able to utilize synthetic data in the future with dwindling real data to confirm continued trends or to identify changes in those trends.
+    Finally, the ultimate goal is to glean insights from the IPEDS data, real or synthesized. The synthetic data will ideally give us the same overall insights as the real data. For this task, we can turn to traditional data mining techniques: classification, clustering, association mining, rule mining, or others. If we can determine trends now, we may be able to utilize synthetic data in the future with dwindling real data to confirm continued trends or to identify changes in those trends. Since the focus here is on synthetic data, we will spend more of our time testing out data mining techniques on the real and synthetic data and confirming that we see similar results, supporting use of synthetic data as a stand-in for or supplement to real data.
 
-    To summarize, this project will work with IPEDS data with its focus on higher education and will explore how we can synthesize more IPEDS data to address potential future lack-of-data issues due to declining higher education enrollments, and we will use these data to tackle standard data mining questions related but focused on higher education data.
+    To summarize, this project will work with IPEDS data with its focus on higher education and will explore how we can synthesize more IPEDS data to address potential future lack-of-data issues due to declining higher education enrollments, and we will use these data to tackle standard data mining questions focused on higher education data but across real and synthetic data.
 
 \section{Related Work}
     My literature review did not return as much related to data mining in higher education as I expected to see, and I was unable to find any research closely related to what we explore in this project. The bulk of what I found is related to different evaluation methods for student learning. Examples are looking at adaptive learning --- learning that dynamically adjusts to students based on different input metrics --- and performance prediction --- trying to determine how a student will end up performing by, for example, graduation. While these are interesting, they do not focus on the type of data that we see in IPEDS.
@@ -83,24 +83,56 @@
 
     \cite{decristofaro2024syntheticdatamethodsuse} provides an overview of synthetic data that is helpful for understanding the need for, uses of, and issues with synthetic data. We will use a production library for synthetic modeling, so we will not address these concerns directly except as parameters to the model(s) we decide to use in the pipeline, but it is good to understand the kinds of trade-offs that are inherent in generative modeling for synthetic tabular data.
 
-    \cite{DBLP:journals/corr/abs-1811-11264} introduces table GAN (TGAN), a GAN-based approach to generating synthetic tabular data. This model uses recurrent neural networks. Each of the generative modeling papers I reviewed have extensive coverage of how to handle concerns in the data. One interesting one to highlight, among a few, from this paper and demonstrating the type of complexity that goes into this type of modeling is the focus on multimodal continuous data. This is continuous data that has more than one value that stands out as more represented in the data, showing up as more than one peak when you plot a histogram of the data. To get around this, the researchers use Gaussian kernel density estimation (KDE) to estimate the distribution of the data. Each KDE can model one mode of the data. We then use Gaussian mixture methods (GMMs) to sample from more than one distribution -- each distribution coming from one of those built with the KDEs -- to recreate the actual distribution. We then sample from this GMM when we are generating a value for that feature, and this gets baked into the modeling, training, and generation processes. This is just one example to demonstrate why we are veering away from building our own generative models in this project.
+    \cite{DBLP:journals/corr/abs-1811-11264} introduces table GAN (TGAN), a GAN-based approach to generating synthetic tabular data. This model uses recurrent neural networks. Each of the generative modeling papers I reviewed have extensive coverage of how to handle concerns in the data. One interesting one to highlight, among a few, from this paper and demonstrating the type of complexity that goes into this type of modeling is the focus on multimodal continuous data. This is continuous data that has more than one value that stands out as more represented in the data, showing up as more than one peak when you plot a histogram of the data. To get around this, the researchers use Gaussian kernel density estimation (KDE) to estimate the distribution of the data. Each KDE can model one mode of the data. We then use Gaussian mixture methods (GMMs) to sample from more than one distribution --- each distribution coming from one of those built with the KDEs --- to recreate the actual distribution. We then sample from this GMM when we are generating a value for that feature, and this gets baked into the modeling, training, and generation processes. This is just one example to demonstrate why we are veering away from building our own generative models in this project.
 
     \cite{DBLP:journals/corr/abs-1907-00503}, by the same authors as the previous TGAN paper, provides more consideration for nuances and potential issues in the data along with adding a deep conditional GAN (DCGAN) as part of their new conditional tabular GAN (CTGAN) model. DCGAN generally is a GAN architecture that uses convolutional neural networks (CNNs) in both the generator and discriminator. One example of extra data considerations is that CTGAN handles severe imbalance in categorical features. We will not worry about the detail of this model either, but it is potentially one that we will use with the modeling library we introduce next.
 
-    \cite{sdv} is our project of choice for generative modeling. It is produced by the authors of the previous two papers above. Similar to those two papers, we will not dig too far into the workings of the libraries in this project. We mostly need a solution that can plug into the synthetic tabular data generative modeling step(s) in the pipeline. Note that both TGAN and CTGAN are dedicated repositories in the Synthetic Data Vault project. There is another main library -- sdv -- that provides easier-to-use versions of the models. There is also SDGym, a synthetic data evaluation library that we can lean on to determine how well our generative modeling is doing.
+    \cite{sdv} is our project of choice for generative modeling. It is produced by the authors of the previous two papers above. Similar to those two papers, we will not dig too far into the workings of the libraries in this project. We mostly need a solution that can plug into the synthetic tabular data generative modeling step(s) in the pipeline. Note that both TGAN and CTGAN are dedicated repositories in the Synthetic Data Vault project. There is another main library --- SDV --- that provides easier-to-use versions of the models. There is also SDGym, a synthetic data evaluation library that we can lean on to determine how well our generative modeling is doing.
 
-    With a sweep through some research papers out of the way, I did not find any papers directly applicable to what we are looking at in this project. So, the contribution that we provide is to start a discussion around data mining for IPEDS data along with generative modeling for IPEDS data. We build on the ideas in the papers above -- the general approaches to analysis in the earlier papers, and the use of synthetic tabular data as described in the latter papers.
+    With a sweep through some research papers out of the way, I did not find any papers directly applicable to what we are looking at in this project. So, the contribution that we provide is to start a discussion around data mining for IPEDS data along with generative modeling for IPEDS data. We build on the ideas in the papers above --- the general approaches to analysis in the earlier papers, and the use of synthetic tabular data as described in the latter papers.
 
 \section{Proposed Work}
-    The general approach for the work in this project is to leverage Python scripts to move information around, a relational database running in Docker for any pieces of the pipeline that would normally use a database, and notebooks as needed for exploratory and visualization purposes.
 
-    To snag the IPEDS data, we will use Python scripts to download the data from the IPEDS website and store it in a relational database, possibly storing the data on disk as a stepping stone. The database will run locally in Docker. IPEDS data already comes in a relatively relational form, so there may not be too much work for the initial load into the database. Much of the data we end up working with in the real world lives in a database, so this recreates that reality here.
+    The general approach for the work in this project is to recreate a full data pipeline on a smaller scale to demonstrate what we could build out further in a production system. We use Python scripts to simulate pulling data from application programming interfaces (APIs), run databases in Docker --- including a very small scale warehouse --- to stand in for real-world database usage, and leverage Jupyter Notebooks for exploratory data analysis (EDA) and modeling, including our core focus of generative modeling to create synthetic tabular data. We hold off on saving the final tuned versions of models and putting them into automated pipelines, but that would be an extension that we would include in a production system. The main idea is to have all the pieces that we would normally tap into in a regular-enough end-to-end data system to provide a foundation from which to expand on later.
 
-    We may leverage the database for preprocessing. We would need to do some manual exploration first in Python, but, after that, we could look at shifting preprocessing into structured query language (SQL), particularly stored as insert triggers in the database. Right now, there is a question about how that would intersect with exploratory data analysis (EDA) that we would end up doing in Python, but we can figure out the specifics as we dig into the data. My thought here is that a production pipeline would be simpler if we could handle more of the preprocessing automatically in the database and not require that someone hook into separate Python scripts, whether automated or needing to be run manually.
+    \subsection{Pipeline Walkthrough}
 
-    We will need to go through a full EDA process. This step will happen outside of the database, so we will look at Python scripts here. At first, this is likely easier with the read-eval-print loop (REPL) functionality of a notebook, though we do not want notebooks in our final pipeline until much closer to the end in production. We need the automation power in scripts instead of notebooks. We may also learn more from the EDA that we can bake into extra preprocessing, informing what is mentioned in the last paragraph.
+    You can view the source code at \href{https://github.com/jhleakakos/msds-data-mining-project}.
 
-    After this round of EDA and any further preprocessing we glean from it, we can then think about warehousing. We will shift the data back into the database, likely just matching the new form of the data to what we need for modeling, but we can decide later on regarding the form of the data in the warehouse. For the scope of this project, we will likely end up with a bespoke warehouse built to immediate modeling or analysis needs rather than a broader warehouse set up in something like a full star schema.
+    We start by using a Python script as a placeholder for some sort of orchestration system. Separate orchestration software would be overkill right now, so we just import functions related to pulling data from the IPEDS website and call those from a dedicated orchestration script, but we would at some point possibly look into something like Apache Airflow to handle orchestration.
+
+    IPEDS data already comes in a relatively relational format, and that lends itself well to loading it directly into a relational database serving as a data lake. We often work with databases in real-world projects, so it makes sense to include one here. We run a PostgreSQL database locally in Docker. Because Postgres connections are database-specific, we use one shared databse for this layer of the data lake and the coming data warehouse layer, using schemas to separate out the data lake from the data warehouse. This allows us to use structured query language (SQL) scripts to move data between the data lake and data warehouse without needing to use any other tooling, simplifying the handling of data in the database.
+
+    We pull a subset of data out of the data lake and explore it in a Jupyter Notebook. The main goal here is to understand the already trimmed IPEDS data and determine where we want to start in terms of what gets moved into the warehouse. IPEDS data is vast and often difficult to work with, so it is important at this stage to narrow down the scope of the data to something reasonable and that allows us to keep our focus on the coming modeling. One big area of focus is on looking at null or missing flags in the IPEDS data and deciding how to handle those when we move data into the warehouse.
+
+    We then use SQL script to move data from the data lake into a very rudimentary version of a dimensional model in the data warehouse, leveraging a standard star schema. Again, this is super small compared to what you would normally see in a real warehouse, but it lets us start to explore different ways of working with IPEDS data on a small scale before ramping up size and complexity in future itertations. As stated above, we use schemas in a shared database to separate out the data lake and data warehouse.
+
+    Note that we do all the database work manually in SQL scripts. This is one of the first areas for improvement in future iterations. An easy start would be to store the current SQL scripts as stored procedures and call them either from an orchestration script or from update or insert triggers in the database. I went back and forth on adding some of these in, but, for the focus of the current project, it felt more important to keep an eye on the modeling instead of adding further complexity into the database layers. But this is probably the next improvement I would make, along with the improvement at the end of modeling mentioned later.
+
+    Next we pull data out of the warehouse for modeling. We do another pass of EDA to explore how quirks in the data may affect generative modeling. We do see some issues and will speak about those in evaluation later.
+
+    We then start in on the main focus of the project --- generative modeling to create new tabular synthetic data that can stand in for or supplement IPEDS data. As stated earlier, this type of generative modeling is notoriously difficult, so, since the focus of this project is not on building an optimized generative model but instead on generating new IPEDS data, we leverage already existing libraries for the generative modeling --- the Synthetic Data Vault project and its CTGAN generative model in particular. I had decided early on to use CTGAN for generative modeling since I spent some time exploring the associated CTGAN paper in a previous project, but there are a number of models and ways to experiment with them, and I tested each of those out before pivoting to working with CTGAN.
+
+    While the notebook for generative modeling is not too long in its current state, much of my time outside of understanding the IPEDS data has gone into experimenting with the generative modeling. The SDV library's APIs are relatively straightforward to work with, but there are many hyperparameters to play around with. There are also decisions about dropping some data features to facilitate quicker and more accurate generative modeling, dropping categorical features with too many categories in particular.
+
+    I used feedback from generative modeling steps and from my understanding of what could negatively affect generative modeling to help further trim down the feature space of the IPEDS data used for modeling. For example, we cut out some of the categorical variables that would be interesting to explore in terms of meaning --- race/ethnicity and gender as two major groups of categorical variables --- because these increase the feature space and copmlexity of inter-feature relationships in a way that can abstract from the needs of the first pass of this project --- feeling like we have landed on a decision about if using our approach to synthetic IPEDS data generation is feasible.
+
+    While working on generative modeling, we also use the SDMetrics library to evaluate the generative modeling process and outputs. For example, we are able to provide a summary number for the quality of the synthetic data in terms of how close it is to the real data. We are able to visualize the GAN losses when training the CTGAN model. We are also able to visualize a given feature in both the real and synthetic data or pairs of features to see different angles into how similar or dissimilar the synthetic data is to or from the real data.
+
+
+
+
+
+
+
+
+    Is synthetic data generative modeling enough, or do we need to keep some extra modeling piece? If the latter, can it be more of a demo or POC than real analysis?
+
+
+
+
+
+
 
     The next step is to explore the outputs of the pipeline. It occurs to me that there are two competing outputs in this project: synthetic IPEDS data and standard evaluative findings. We will need to find a balance here, so we may limit the amount of regression, classification, or clustering we do to leave space for the synthetic data generative modeling, possibly demoing a smaller example of how we would glean insights out of the synthetic dataset using classification, for example, rather than adding more scope into that outputs after the generative modeling. The final outputs I have a sense will work well with the synthetic IPEDS data are regression for number of enrollments or degree completions, clustering to find groupings of institutions that we should keep an eye on, and classification for putting institutions into those groupings.
 
@@ -109,7 +141,6 @@
     The areas I am keeping an eye on here are the extra loop of preprocessing in the database, the inclusion of synthetic data, and narrowing down the final outputs. The ideas in this section are fine for now, but we need to make these more concrete as we begin digging into the data.
 
     \subsection{updates for proposed work}
-        Is synthetic data generative modeling enough, or do we need to keep some extra modeling piece? If the latter, can it be more of a demo or POC than real analysis?
 
         Can reference technical details section in appendix to fill in from here
 
@@ -124,6 +155,32 @@
         call out emphasis on db work since we are mimicing a real-world mining pipeline that will likely rely heavily on db tech
 
         talk about slowly changing dimensions for institutional characteristics between years in particular and modeling decisions related to that
+
+        first eda from data lake to warehouse shows that the expected groupings aren't how the appear. for example, when you sum for all the enrollment rows in effy2023.csv for an institution, the total is way higher than is reasonable and than what we see on the IPEDS data explorer tool on their website. The dictionaries aren't super clear about how this should happen or how to properly use all of the rows.
+
+        use IPEDS data explorer tool to sanity check the numbers we use for modeling. Our numbers are higher than what we see in that tool, but we are using 12-month enrollment compared to the tool's fall enrollment, so we are likely close enough.
+
+        our enrollment numbers are higher, but our top 10 by enrollment match what we see on ipeds and other lists of schools by enrollment
+
+        talk about using single-table generative models from SDV, simplifying first pass of modeling
+
+        talk about not wanting synthetic data to be 100 percent accurate due to desired trade-offs for privacy
+
+        increases from high 70 percent to above for scores when dropping institution name and CBSA due to high number of categories
+
+        Talk about: data understanding (including stats and vis), data preprocessing and steps taken on raw data, emphasize that we do use warehousing and how
+
+        Talk about modeling, probably adding a new subsection to go into detail on synthetic data and detail on regression/classification/clustering
+
+        Pattern evaluation: effectiveness, efficiency
+
+        Emphasize where the project currently is at when updating report and slides
+
+        Emphasize analytical thinking, reasoning behind choices, process, method, results
+
+        Talk about how to evaluate generative output -- machine learning score and how that fits in with other outputs
+
+        pick some subsections for this section to clarify items here
 
     \subsection{IPEDS Data}
         IPEDS has a ton of data available, so our first major task is to narrow that down to what we want to explore in this project. The approach we take is to pull in a subset of the three domains of IPEDS data we identified earlier: institutional characteristics, enrollments, and completions. There are a ton of trade-offs in terms of pulling in more data or trimming down even to where we do.
@@ -187,6 +244,16 @@
             For a more detailed summary of the IPEDS domains we work with, please read data/data\_notes.md in the GitHub repository.
 
 \section{Evaluation}
+
+
+    talk about issues in the data and curiosity around if generative modeling will handle them okay -- skewed data and imbalanced categories
+
+    SDMetrics
+
+    Summary model score
+    SDMetrics numbers or visualizations
+
+
     The first evaluations will capture how similar the synthetic data is to the real data. We will explore the evaluation metrics in the Synthetic Data Vault Project, and, on top of those metrics, a couple of extra candidates that stand out are per-attribute comparisons and machine learning score. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as mean or standard deviation, and determine the quality of the synthetic data based on how close these measures are across the datasets. Machine learning score trains classifiers on the real and synthetic datasets and compares the performance of those models. For example, if we use both classifiers to check something like accuracy or F1 score on a held-out test set, we can evaluate how similar the synthetic data is to the real data based on comparing those scores.
 
     We can also look at more advanced evaluation metrics. One that has stood out to me predicting each feature in a dataset with all of the other features. If we find the predictive power in the real and synthetic datasets are similar, then, like above, that can give us a sense of how similar the datasets themselves are.
@@ -204,6 +271,11 @@
     While I feel like there are loads of evaluative methods to explore, I am also interested in looking at some of the algorithms from the second data mining course. I have leveraged things like similarity scores in other projects, but I have not experimented with, for instance, FP growth, and it would be interesting to possibly pick a brand new algorithm to plop at the end of the pipeline and figure out what it means to evaluate that algorithm and what it reveals to us. But, similar to with unsupervised learning, my desire to explore synthetic data may mean leaving out some of the new algorithms from the second course for now. This would be an area to explore more in the next iteration of the project though.
 
 \section{Discussion}
+
+
+
+
+
     My goal for this project is to stick within a 3-4 week limit, if possible. I tend to drag out projects, taking the opportunity to add increased complexity and explore new items I am curious about. But, while spending forever on projects is fun and educational, I do risk getting too comfortable with taking my time. I could benefit from descoping and focusing on getting smaller chunks working earlier and then deciding if it is worth expanding out from there.
 
     In that vein, I am hoping that this draft is an upper bound for the work in this project. Some areas where I would like to bound the scope a bit would be in the back-and-forth with the database earlier in the pipeline, how much to dig into synthetic data, how wide of a range of questions to explore in the data, and what types of modeling or pattern mining to use at the end of the pipeline. Since I have not started in on the technical work or deeper dives into the data yet, it feels okay to start out more expansively as is done here and look for the next draft to hone in on a more accurate scope.
@@ -221,47 +293,22 @@
     \subsubsection{Data Analysis or Business Intelligence}
 
 \section{Conclusion}
+
+
+    This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses
+
+
+
+
     There is not much to conclude at the moment. We will fill this in as we start doing the data work of the project. What I expect to see here is that we trimmed down the IPEDS data, scoped the use case for the project to be a bit narrower, spent more time explore synthetic data and its associated generative modeling, and picked a simpler overall output, likely sticking supervised modeling. For a surprise finish, we may end up deciding to pull some data out and run it through a separate business intelligence tool like Tableau with the idea that end users of the production pipeline may want to leverage tools such as that for their purposes, though this would only come into play if we find that the project turns out to be too quick and simple to get through.
 
     As for future iterations of the project, I expect that the biggest area of grows would be to incorporate more IPEDS data to answer a broader range of questions. I do not expect radical changes in the pipeline architecture in next iterations of the project, but I do expect additions and expansions in order to accommodate particular questions of interest inherent in the new data.
 
-    \subsection{additions for conclusion}
-
-    This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{msds_data_mining_project_report}
 
 \appendix
-
-\section{Technical Details}
-
-
-
-
-
-    figure out what should go here vs in proposed work section
-
-
-
-
-
-
-    This section will provide more details about the technical work, if of interest. You can find the source code for this project at \href{https://github.com/jhleakakos/msds-data-mining-project}.
-
-    src/orchestrator.py is the primary Python file, controlling the general flow of the pipeline. We do not need a full orchestration solution for this project, so we will recreate the idea, as needed, in this file, not worrying too much about automation but instead using this utility to help iterative work. One area of growth for larger or more complex systems would be to build a more complex orchestration file and infrastructure or incorporate orchestration software instead.
-
-    The first milestone is getting the subset of IPEDS data that we want to work with loaded into the database. Since many real-world pipelines will start with data in a database or loading raw data into a database, we will recreate that here. For now, we run the database scripts manually.
-
-    \begin{itemize}
-        \item Download IPEDS flat files from the IPEDS website using src/pull_data.py. This script has code to pull all the files in the three domains of IPEDS data that we explore in this project. I originally downloaded and looked through all these files and their associated dictionaries, then reducing down to the files and features we want to explore. We comment out files that we do not plan to use in this iteration of the project. This script is easy to modify to pull in other IPEDS data flat files.
-        \item Set up PostgreSQL to run in Docker. The root of the repository includes a Dockerfile that primarily copies the IPEDS files into the container along with a Docker Compose file that configures the remainder of the container and data volume.
-        \item There are structured query language (SQL) scripts to create the datalake database, create the data lake tables, and copy in full IPEDS files as a stepping stone to pulling out the features in each file that we want to work keep.
-        \item We load the data lake by using the \textit{copy} command. This takes in a comma-separated values (CSV) file and loads it into the specified table. This is purposely different than a process like reading the data into Python structures, opening a database connection, and using Python to write to the database. The idea here is that this method will let us load arbitrarily large datasets through a more efficient database utility.
-        \item For now, we run the SQL scripts manually, though we could look to automate these later, likely through storing the data lake loading functionality as a stored procedure or setting up triggers to copy data around.
-    \end{itemize}
-
-    At this stage, we are ready to pivot to EDA and take a closer look at the subset of IPEDS data that we hope to eventually synthesize and feed into modeling.
 
 \section{IPEDS Fields}
     The summaries for files and fields here come from each file's associated data dictionary. Note that the biggest difference between the list here and the larger summary in data/data_notes.md in the source repository is that we drop gender and race/ethnicity disaggregates here.
@@ -398,12 +445,12 @@
     \end{itemize}
 
     \subsection{IPEDS Fields for Modeling}
-        These are the fields we pull from the files above to create the modeling dataset.
+        These are the fields we pull from the files above to create the modeling dataset. Note that we drop INSTNM and CBSA during generative modeling and later since these features have a ton of categories each, and all those categories wreak havoc on the CTGAN performance without providing enough meaning to justify the performance hit. For context, the CTGAN model takes more than 30 minutes to train with these features and under a minute without them.
 
         \begin{itemize}
             \item year: we snag this when reading in files and add it as needed throughout the warehouse
             \item HDyyyy.UNITID: unique institutional identifier
-            \item HDyyyy.INSTNM: institution name
+            \item HDyyyy.INSTNM: institution name (not using during actual modeling because of the number of unique categories)
             \item HDyyyy.STABBR: state abbreviation
             \item HDyyyy.OBEREG: Bureau of Economic Analysis regions, grouped by homogeneity of states based on economic, demographic, social, and cultural characteristics
             \item HDyyyy.HLOFFER: highest level of credential offered
@@ -413,7 +460,7 @@
             \item HDyyyy.LOCALE: geographic status of school
             \item HDyyyy.CLOSEDAT: date institution closed
             \item HDyyyy.INSTCAT: category of institution regarding credentials offered
-            \item HDyyyy.CBSA: core based statistical area
+            \item HDyyyy.CBSA: core based statistical area (not using during actual modeling because of the number of unique categories)
             \item ICyyyy.CNTLAFFI: institution control or affiliation (public, private non-profit, etc)
             \item EFFYyyyy.EFYTOTLT: total students enrolled for credit
             \item Cyyyy_B.CSTOTLT: number of students receiving awards/degrees
