@@ -203,26 +203,29 @@
     While I feel like there are loads of evaluative methods to explore, I am also interested in looking at some of the algorithms from the second data mining course. I have leveraged things like similarity scores in other projects, but I have not experimented with, for instance, FP growth, and it would be interesting to possibly pick a brand new algorithm to plop at the end of the pipeline and figure out what it means to evaluate that algorithm and what it reveals to us. But, similar to with unsupervised learning, my desire to explore synthetic data may mean leaving out some of the new algorithms from the second course for now. This would be an area to explore more in the next iteration of the project though.
 
 \section{Discussion}
-
-
-    timeline
-    challenges
-    alternatives and backup plan
-
-
-
     My goal for this project is to stick within a 3-4 week limit, if possible. I tend to drag out projects, taking the opportunity to add increased complexity and explore new items I am curious about. But, while spending forever on projects is fun and educational, I do risk getting too comfortable with taking my time. I could benefit from descoping and focusing on getting smaller chunks working earlier and then deciding if it is worth expanding out from there.
 
-    In that vein, I am hoping that this draft is an upper bound for the work in this project. Some areas where I would like to bound the scope a bit would be in the back-and-forth with the database earlier in the pipeline, how much to dig into synthetic data, how wide of a range of questions to explore in the data, and what types of modeling or pattern mining to use at the end of the pipeline. Since I have not started in on the technical work or deeper dives into the data yet, it feels okay to start out more expansively as is done here and look for the next draft to hone in on a more accurate scope.
+    The first area to keep an eye on scope is with the data used in the project. We start by selecting three IPEDS domains among many. We then systematically trim the datasets down in stages, as described earlier. By the time we reach modeling, we have a dataset with 14 features. Two of those are numeric targets we can use for regression. We could also put some boundary cutoffs for those fields to aid with classification. We have a couple of more likely features in terms of explanatory power, and we have a few extras to test out in terms of importance. Keeping the dataset smaller helps keep the modeling stages more focused.
 
-    I did spend a bit of time looking through different public datasets, a number of those through NCES, ultimately landing on IPEDS, but I still need to spend a bit more time with the chosen IPEDS data. I have a sense the three domains of IPEDS data may get trimmed down to two domains. But gaining clarity on the data itself will take some time.
+    Next is the use of the database. This is a personal thing for me, but I am more familiar working in databases over the years, so doing work in the database simplifies the amount of time needed for me to set up a production-esque system.
 
-    The main challenge I see is that the data ends up being much more complicated to work with than expected, and that will take time to reveal itself, particularly in the understanding and preprocessing steps of the pipeline. One goal will be to get to those steps sooner to figure out what it will be like working with this data. The next big challenge I foresee is when we hit modeling, both the generative modeling for the synthetic data and whichever modeling we choose to employ on that synthetic data, though, as said above, the goal is for the latter to remain simpler in this project, leaving space to focus on the synthetic data itself.
+    I also selected data that is complex but familiar. I have worked in higher education for years, so, while IPEDS data is itself complicated, it helps that I am used to using higher education data, again helping to keep the scope manageable.
 
-    The general backup plan is to simplify the IPEDS dataset down quite a bit. We may even be able to get away with using just one domain of IPEDS data if needed. Since a major goal of this project is to demonstrate synthesizing IPEDS data, we may also only keep data that looks relatively clean to start with. We will also get a sense of which features in the data may be easier to model, again providing a way to simplify the scope to accommodate competing needs.
+    The result of trimming the scope is that I leave more time to play with generative modeling. While the final generative modeling notebook is pretty streamlined, it did not start that way. I had the opportunity to explore a number of models spanning different algorithms and a range of hyperparameters.
 
-    To wrap up with an explicit acknowledgment of risks for my projects, the biggets worry is that the scope grows to an unruly size, so there are a number of comments in this report speaking to ways to keep that in check, spanning from stricter time scoping to simplifying the data to sticking with easier-to-implement modeling.
+    My initial main challenge that I was looking out for was much higher complexity in the IPEDS data. To be fair, the IPEDS data took a good chunk of the time in this project to sort through, and, as stated earlier, I purposely narrowed down the data to try and address this challenge.
 
+    The next challenge was around how much automation to bake into the project. Ideally, I wanted to build out a fully automated pipeline, but I ended up finding that the extra effort to implement this would not add to the value of this iteration of the project. Instead, I have some placeholders and plans for how to increase automation in future iterations. These primarily look like leveraging the orchestration script, adding database objects such as stored procedures and triggers, and building out some utility scripts that help to add in new data. For example, a we could built a utility script that reads a new raw data file, pulls the headers, creates an SQL script to create a new table, and push the data into the database, as one example. This is in contrast to building all this out manually as we do at the moment, and it is one example of where we could use such a script.
+
+    In terms of ongoing challenges, I am currently working through evaluations of the synthetic data. I have refined the process quite a bit, but there are still some remaining areas to smooth out. For example, I already had to drop some features due to their negative performance on generative model training. I would like to explore ways to tinker with the generative modeling to encompass a broader range of data. This could look like changing hyperparameters, but it is more likely that it means curating different modeling datasets to answer specific questions.
+
+    I already leveraged one of my backup plans in that I needed to descope the range of IPEDS data that I originally looked to include. Three separate times.
+
+    If I run into any serious issues with generative modeling, it is an option to test out different libraries. I have a few in mind based on other research papers I have worked through in the past, but I am not realistically expecting to switch libraries this far into the project.
+
+    A final backup plan would be what to do if the steps after generative modeling end up a bit too plain. For example, while the synthetic data we create now may look good on the surface, it may not be as useful as we would like it to be in terms of regression, classification, or other approach. The simpler plan here would be to expand the evaluation steps for the synthetic data and generative modeling since this already includes some extra modeling. It could be an option to return to the IPEDS files and select a wider range of features, but I would need to see some serious trouble before wanting to shift back that far in the pipeline to start redoing work.
+
+    I do want to call out that, since this report comes most of the way through the planning, design, and implementation of the project, I am hoping that there are not too many surprises left, if any. I have also already taken steps to mitigate my biggest worry of scope creep, so I am not as worried about that creeping back in at this point. It will require not letting final modeling take up too much space, but, fortunately, the project feels pretty robust as it is now, so there may be an opportunity to find a way to wrap things up soon.
 
 \section{Conclusion}
 
