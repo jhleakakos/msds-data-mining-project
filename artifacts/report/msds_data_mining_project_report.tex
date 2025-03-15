@@ -228,25 +228,17 @@
     I do want to call out that, since this report comes most of the way through the planning, design, and implementation of the project, I am hoping that there are not too many surprises left, if any. I have also already taken steps to mitigate my biggest worry of scope creep, so I am not as worried about that creeping back in at this point. It will require not letting final modeling take up too much space, but, fortunately, the project feels pretty robust as it is now, so there may be an opportunity to find a way to wrap things up soon.
 
 \section{Conclusion}
+    To recap, we are using three domains of IPEDS data to test out generative modeling to produce synthetic tabular data, preparing for the reality where we have less and less higher education data in the coming years. We set up a small sample of a full ETL pipeline, send the IPEDS data through, generate synthetic data, and do some exploratory modeling on that data. This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses in the future.
 
+    At this point, I am still experimenting with the outputs from the generative modeling. Most of the pipeline and project are complete, and the third iteration of this report and the associated slides will fill in details about modeling on the the synthetic data itself.
 
-    project summary
-    key findings
-    future work
+    The biggest findings so far have been some of what we expected to see: the IPEDS data contains a lot more complexity than what it looks like at first. We address this by descoping the data that we work with in this pass. In future iterations, we will incorporate much more IPEDS data. That will result in a more robust and complicated warehouse, generative modeling, and exploration of questions with the synthetic data. But, for now, the scope here feels healthy for a first iteration on a project of this sort.
 
-    This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses
+    One area to call out that I do not plan to have an answer for in this project is how we would pivot from IPEDS institutional-level data to student-level data, the latter being the area where are likely to see the biggest drop-off in future years. When doing initial planning for this project, I expected that there would be a couple of obvious areas in which to pivot from IPEDS data to student-level data, but those areas have not revealed themselves. One issue is that student-level data by its nature of being scoped to individual students is not and should not be in large aggregated and publicly available data such as what we find on IPEDS, primarily for privacy concerns. There are many questions that the batch of IPEDS data in this project raise that could lead us to exploring student-level data, but I do not see any reason to go down that path at this point.
 
-    Emphasize where the project currently is at when updating report and slides
+    That all said, while generating synthetic IPEDS data is interesting and valuable, it is likely that generating synthetic student-level data may be the real need in the future.
 
-    Why synthesize the IPEDS data we use instead of student-level data, the area where we will see a real drop off in coming years? How are aggregates in IPEDS different from student-level data?
-
-
-
-
-    There is not much to conclude at the moment. We will fill this in as we start doing the data work of the project. What I expect to see here is that we trimmed down the IPEDS data, scoped the use case for the project to be a bit narrower, spent more time explore synthetic data and its associated generative modeling, and picked a simpler overall output, likely sticking supervised modeling. For a surprise finish, we may end up deciding to pull some data out and run it through a separate business intelligence tool like Tableau with the idea that end users of the production pipeline may want to leverage tools such as that for their purposes, though this would only come into play if we find that the project turns out to be too quick and simple to get through.
-
-    As for future iterations of the project, I expect that the biggest area of grows would be to incorporate more IPEDS data to answer a broader range of questions. I do not expect radical changes in the pipeline architecture in next iterations of the project, but I do expect additions and expansions in order to accommodate particular questions of interest inherent in the new data.
-
+    In terms of the synthetic data itself, while I am still working on that layer of the pipeline and project, so far it appears to work as desired, allowing us to create new data that is similar to the statistical trends we see in the real data. I have pulled in some of my higher education data experience when working with this batch of IPEDS data, but a first next step in a future iteration of the project would be to highlight areas where there are known difficulties and confusion with higher education data and exploring how the generative modeling handles those. And, as said above, the pipeline and approach here could use thorough testing and enhancement related to incorporating a much wider range of IPEDS data, a more complicated warehouse, and improved scope and usage of generative modeling.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{msds_data_mining_project_report}
@@ -256,136 +248,138 @@
 \section{IPEDS Fields}
     The summaries for files and fields here come from each file's associated data dictionary. Note that the biggest difference between the list here and the larger summary in data/data\_notes.md in the source repository is that we drop gender and race/ethnicity disaggregates here.
 
-    Domain: Institutional Characteristics
+    \subsection{Data from Raw Files}
 
-    HDyyyy: directory information for institutions
+        Domain: Institutional Characteristics
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item INSTNM: institution name
-        \item STABBR: state abbreviation
-        \item OBEREG: Bureau of Economic Analysis regions, grouped by homogeneity of states based on economic, demographic, social, and cultural characteristics
-        \item HLOFFER: highest level of credential offered
-        \item DEGGRANT: does the institution offer degrees (as compared to non-degree credentials)
-        \item HBCU: is the institution an HBCU
-        \item TRIBAL: is this a tribal institution
-        \item LOCALE: geographic status of school
-        \item CLOSEDAT: date institution closed
-        \item CYACTIVE: is institution active in current year
-        \item INSTCAT: category of institution regarding credentials offered
-        \item C21BASIC: alternative to Carnegie Classification and last updated in 2021
-        \item INSTSIZE: enrollment size in 2019
-        \item CBSA: core based statistical area
-    \end{itemize}
+        HDyyyy: directory information for institutions
 
-    ICyyyy: program and award level offerings, control, and affiliation of institutions
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item INSTNM: institution name
+            \item STABBR: state abbreviation
+            \item OBEREG: Bureau of Economic Analysis regions, grouped by homogeneity of states based on economic, demographic, social, and cultural characteristics
+            \item HLOFFER: highest level of credential offered
+            \item DEGGRANT: does the institution offer degrees (as compared to non-degree credentials)
+            \item HBCU: is the institution an HBCU
+            \item TRIBAL: is this a tribal institution
+            \item LOCALE: geographic status of school
+            \item CLOSEDAT: date institution closed
+            \item CYACTIVE: is institution active in current year
+            \item INSTCAT: category of institution regarding credentials offered
+            \item C21BASIC: alternative to Carnegie Classification and last updated in 2021
+            \item INSTSIZE: enrollment size in 2019
+            \item CBSA: core based statistical area
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item CNTLAFFI: institution control or affiliation (public, private non-profit, etc)
-        \item OPENADMP: open admission policy
-    \end{itemize}
+        ICyyyy: program and award level offerings, control, and affiliation of institutions
 
-    ICyyyy\_PY: student charges by program
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item CNTLAFFI: institution control or affiliation (public, private non-profit, etc)
+            \item OPENADMP: open admission policy
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item PRGMOFR: number of programs offered at institution
-        \item CIPCODE1: CIP code of the largest program
-        \item CIPCODE2: CIP code of the second largest program
-        \item CIPCODE3: CIP code of the third largest program
-        \item CIPCODE4: CIP code of the fourth largest program
-        \item CIPCODE5: CIP code of the fifth largest program
-        \item CIPCODE6: CIP code of the sixth largest program
-    \end{itemize}
+        ICyyyy\_PY: student charges by program
 
-    Domain: Enrollments
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item PRGMOFR: number of programs offered at institution
+            \item CIPCODE1: CIP code of the largest program
+            \item CIPCODE2: CIP code of the second largest program
+            \item CIPCODE3: CIP code of the third largest program
+            \item CIPCODE4: CIP code of the fourth largest program
+            \item CIPCODE5: CIP code of the fifth largest program
+            \item CIPCODE6: CIP code of the sixth largest program
+        \end{itemize}
 
-    EFFYyyyy: unduplicated 12-month enrollment headcount
+        Domain: Enrollments
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item EFFYALEV: level, full- and part-time status, degree- or nondegree-seeking status, and year of study of student enrolled for credit
-        \item EFFYLEV: level of study
-        \item EFYTOTLT: total students enrolled for credit
-    \end{itemize}
+        EFFYyyyy: unduplicated 12-month enrollment headcount
 
-    EFFYyyyy\_DIST: unduplicated 12-month enrollment headcount by distance education status and level of student
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item EFFYALEV: level, full- and part-time status, degree- or nondegree-seeking status, and year of study of student enrolled for credit
+            \item EFFYLEV: level of study
+            \item EFYTOTLT: total students enrolled for credit
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item EFFYDLEV: level and degree- or nondegree-seeking status of students enrolled for credit
-        \item EFYDETOT: all students enrolled for credit (sum of next three columns)
-        \item EFYDEEXC: students enrolled only in distance education courses
-        \item EFYDESOM: students enrolled in at least one distance education course but not enrolled exclusively in distance education courses
-        \item EFYDENON: students not enrolled in any distance education courses
-    \end{itemize}
+        EFFYyyyy\_DIST: unduplicated 12-month enrollment headcount by distance education status and level of student
 
-    EFFYyyyy\_HS: unduplicated 12-month enrollment headcount of dual credit students; subset of the nondegree and non-certificate-seeking students from EFFY2023
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item EFFYDLEV: level and degree- or nondegree-seeking status of students enrolled for credit
+            \item EFYDETOT: all students enrolled for credit (sum of next three columns)
+            \item EFYDEEXC: students enrolled only in distance education courses
+            \item EFYDESOM: students enrolled in at least one distance education course but not enrolled exclusively in distance education courses
+            \item EFYDENON: students not enrolled in any distance education courses
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item EFYTOTLT: total dual credit students
-    \end{itemize}
+        EFFYyyyy\_HS: unduplicated 12-month enrollment headcount of dual credit students; subset of the nondegree and non-certificate-seeking students from EFFY2023
 
-    EFIAyyyy: instructional activity measured in total credit and/or contact hours delivered by institutions in 12-month period, used to derive 12-month full time equivalent (FTE) enrollments
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item EFYTOTLT: total dual credit students
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item EFTEUG: estimated FTE undergraduate enrollment
-        \item EFTEGD: estimated FTE graduate enrollment
-        \item FTEUG: reported FTE undergraduate enrollment
-        \item FTEGD: reported FTE graduate enrollment
-        \item FTEDPP: doctor's-professional practice FTE
-    \end{itemize}
+        EFIAyyyy: instructional activity measured in total credit and/or contact hours delivered by institutions in 12-month period, used to derive 12-month full time equivalent (FTE) enrollments
 
-    Domain: Completions
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item EFTEUG: estimated FTE undergraduate enrollment
+            \item EFTEGD: estimated FTE graduate enrollment
+            \item FTEUG: reported FTE undergraduate enrollment
+            \item FTEGD: reported FTE graduate enrollment
+            \item FTEDPP: doctor's-professional practice FTE
+        \end{itemize}
 
-    Cyyyy\_A: number of awards by type of program, level of award (degree or certificate), first or second major, by race/ethnicity, and by gender
+        Domain: Completions
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item CIPCODE: CIP code
-        \item MAJORNUM: first or second major
-        \item AWLEVEL: award level code
-        \item CTOTALT: awards/degrees conferred to all recipients
-    \end{itemize}
+        Cyyyy\_A: number of awards by type of program, level of award (degree or certificate), first or second major, by race/ethnicity, and by gender
 
-    Cyyyy\_B: number of students who completed any degree or certificate by race/ethnicity and gender
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item CIPCODE: CIP code
+            \item MAJORNUM: first or second major
+            \item AWLEVEL: award level code
+            \item CTOTALT: awards/degrees conferred to all recipients
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item CSTOTLT: number of students receiving awards/degrees
-    \end{itemize}
+        Cyyyy\_B: number of students who completed any degree or certificate by race/ethnicity and gender
 
-    Cyyyy\_C: number of students receiving a degree or certificate by level of award and race/ethnicity, gender, and age
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item CSTOTLT: number of students receiving awards/degrees
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item AWLEVELC: award level
-        \item CSTOTLT: number of students receiving awards/degrees
-    \end{itemize}
+        Cyyyy\_C: number of students receiving a degree or certificate by level of award and race/ethnicity, gender, and age
 
-    CyyyyDEP: number of programs offered by type of program, award level, and distance education status
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item AWLEVELC: award level
+            \item CSTOTLT: number of students receiving awards/degrees
+        \end{itemize}
 
-    \begin{itemize}
-        \item UNITID: unique institutional identifier
-        \item CIPCODE: six-digit CIP code
-        \item PTOTAL: number of programs offered across all award levels
-        \item PTOTALDE: number of programs that can be completed entirely online across all award levels
-        \item PASSOC: number of programs offered at associate's degree level
-        \item PBACHL: number of programs offered at bachelor's degree level
-        \item PMASTR: number of programs offered at master's degree level
-        \item PDOCRS: number of programs offered at doctor's research/scholarship degree level
-        \item PDOCPP: number of programs offered at doctor's professional practice degree level
-        \item PDOCOT: number of programs offered at doctor's other degree level
-        \item PCERT1A: number of programs offered at certificate level of less than 300 clock hours, 9 semester/trimester credit hours, or 13 quarter credit hours
-        \item PCERT1B: number of programs offered at certificate level of 300-800 clock hours, 9-29 semester/trimester credit hours, or 13-44 quarter credit hours
-        \item PCERT2: number of programs offered at certificate level of one year but less than two years
-        \item PCERT4: number of programs offered at certificate level of two years but less than four years
-        \item PPBACC: number of programs offered at postbaccalaureate certificate level
-        \item PPMAST: number of programs offered at post-master's certificate level
-    \end{itemize}
+        CyyyyDEP: number of programs offered by type of program, award level, and distance education status
+
+        \begin{itemize}
+            \item UNITID: unique institutional identifier
+            \item CIPCODE: six-digit CIP code
+            \item PTOTAL: number of programs offered across all award levels
+            \item PTOTALDE: number of programs that can be completed entirely online across all award levels
+            \item PASSOC: number of programs offered at associate's degree level
+            \item PBACHL: number of programs offered at bachelor's degree level
+            \item PMASTR: number of programs offered at master's degree level
+            \item PDOCRS: number of programs offered at doctor's research/scholarship degree level
+            \item PDOCPP: number of programs offered at doctor's professional practice degree level
+            \item PDOCOT: number of programs offered at doctor's other degree level
+            \item PCERT1A: number of programs offered at certificate level of less than 300 clock hours, 9 semester/trimester credit hours, or 13 quarter credit hours
+            \item PCERT1B: number of programs offered at certificate level of 300-800 clock hours, 9-29 semester/trimester credit hours, or 13-44 quarter credit hours
+            \item PCERT2: number of programs offered at certificate level of one year but less than two years
+            \item PCERT4: number of programs offered at certificate level of two years but less than four years
+            \item PPBACC: number of programs offered at postbaccalaureate certificate level
+            \item PPMAST: number of programs offered at post-master's certificate level
+        \end{itemize}
 
     \subsection{IPEDS Fields for Modeling}
         These are the fields we pull from the files above to create the modeling dataset. Note that we drop INSTNM and CBSA during generative modeling and later since these features have a ton of categories each, and all those categories wreak havoc on the CTGAN performance without providing enough meaning to justify the performance hit. For context, the CTGAN model takes more than 30 minutes to train with these features and under a minute without them.
