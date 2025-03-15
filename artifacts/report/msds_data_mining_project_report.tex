@@ -178,54 +178,27 @@
 
         Note that the appendix has details on the features that we work with at the data lake and data warehouse steps.
 
-    \subsubsection{Generative Modeling}
+    \subsubsection{Data Analysis}
+        Will fill this section in more for the next pass of the report.
 
-    Talk about modeling, probably adding a new subsection to go into detail on synthetic data and detail on regression/classification/clustering
-    talk about using single-table generative models from SDV, simplifying first pass of modeling
+        This is the remaining chunk of work that I have to complete at this point. The current thinking is that we will lean into testing out different modeling or mining techniques across the real data, across the synthetic data, and across both combined together. The focus of this project is on synthesizing IPEDS data, so we need to explore how incorporating the synthetic data affects common output tasks that we will want to run on different subsets of IPEDS data.
 
+        Note that this will end up looking a lot like the machine learning score evaluation technique that we explained earlier. This means our modeling analysis will blur the line with evaluation for this project, but it will help us to gain more fluency in working with synthetic data generally and the use of the specific libraries we use with IPEDS data.
 
-
-    \subsubsection{Data Analysis or Business Intelligence}
-
-    Is synthetic data generative modeling enough, or do we need to keep some extra modeling piece? If the latter, can it be more of a demo or POC than real analysis?
-
-
+        As a reminder, we are abstracting many of the details of generative modeling since that could be an entire project to itself, though we will call out how the data we work with could affect the generative modeling step.
 
 \section{Evaluation}
-
-
-    talk about issues in the data and curiosity around if generative modeling will handle them okay -- skewed data and imbalanced categories
-
-    SDMetrics
-
-    Summary model score
-    SDMetrics numbers or visualizations
-
-    Talk about how to evaluate generative output -- machine learning score and how that fits in with other outputs
-
-    Pattern evaluation: effectiveness, efficiency
-
-    talk about not wanting synthetic data to be 100 percent accurate due to desired trade-offs for privacy
-
-    increases from high 70 percent to above for scores when dropping institution name and CBSA due to high number of categories
-
-
-
-
-
     The first evaluations will capture how similar the synthetic data is to the real data. We will explore the evaluation metrics in the Synthetic Data Vault Project, and, on top of those metrics, a couple of extra candidates that stand out are per-attribute comparisons and machine learning score. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as mean or standard deviation, and determine the quality of the synthetic data based on how close these measures are across the datasets. Machine learning score trains classifiers on the real and synthetic datasets and compares the performance of those models. For example, if we use both classifiers to check something like accuracy or F1 score on a held-out test set, we can evaluate how similar the synthetic data is to the real data based on comparing those scores.
 
     We can also look at more advanced evaluation metrics. One that has stood out to me predicting each feature in a dataset with all of the other features. If we find the predictive power in the real and synthetic datasets are similar, then, like above, that can give us a sense of how similar the datasets themselves are.
 
     There are any number of other evaluative metrics for synthetic data. We will explore what is available with the Synthetic Data Vault Project that we use and will clarify here as we learn more during experimentation. It is worth calling out here that we could expand the evaluation of the synthetic data itself, taking up more scope from later steps such as regression or classification or such. The risk of not spending enough time evaluating the synthetic data is that we may end up testing out further modeling on an ill-fitting synthetic dataset.
 
-    Moving on from synthetic data, until we explore the IPEDS data further, I am not sure exactly what we will end up modeling or testing as output. But there are some general contenders that we could likely look at.
+    At this stage, we have run a pass of generative modeling and added summary statistics and visualizations in the generative modeling notebook that you can explore in the source code. We also drop two features that we originally meant to include due to their negative effect on generative modeling. I will hold off on doing a more detailed summary until the next pass of this report, though the initial metrics look promising, with the summary numbers falling into ranges that hint that the synthetic data is picking up on patterns in the real data without mirroring the real data so closely that we run into privacy concerns.
 
-    For supervised modeling outputs, we can look at standard metrics such as accuracy, precision, F1 score, and more for classification problems. We can use a metric like mean squared error (MSE) or adjusted r-squared ($R^2_a$) to measure regression models. These evaluations give us firm numbers we can use to determine how well our modeling is doing. We may stick with supervised learning if we give more space to synthetic data evaluation since my experience is that the degree of difficulty jumps up when we pivot to unsupervised learning
+    Moving on from synthetic data, my main intention is to build regression models on total enrollment and completion numbers per institution. I am curious to see which descriptive features help the most in predicting enrollments and completions. This would be a supervised regression task that we have built the warehouse and modeling dataset around. We can use metrics like mean squared error (MSE) or adjusted r-squared ($R^2_a$) to measure these regression models. These evaluations give us firm numbers we can use to determine how well our modeling is doing. We can compare across the three different groups of input data to see how well the synthetic data is doing, and we can focus on the modeling for the real data to see if we can glean insights out of the IPEDS data.
 
-    That said, I am actually more intrigued by seeing what we can find with unsupervised learning. Admittedly, the outputs for unsupervised learning can be more difficult to work with, especially at this early stage. Clustering is the first unsupervised modeling that comes to mind. I often think of clustering as a much more advanced version of EDA. We are not really sure what patterns exist in the data, so we supercharge standard EDA and see what patterns we uncover when leveraging machine learning. But we do not have a clean evaluation metric with clustering. We will need to interactively explore the clustering outputs, at least at first. At some point, we can determine a set number of clusters and pivot the clustering into a classification approach, but the more interesting piece here for me is the clustering itself.
-
-    I am on the fence about leaning more into the synthetic data approach in which we would spend a lot more time evaluating the quality of the synthetic data. With synthetic data, I still would like to test out one of the analytical pieces at the end of the pipeline, but maybe we stick to something simpler like a clearer classification problem. If we instead drop synthetic data, then we have more room to tackle something like unsupervised learning and the complexity inherent in it.
+    I am not sure yet if we will include unsupervised learning techniques. Admittedly, the outputs for unsupervised learning can be more difficult to work with. Clustering is the first unsupervised modeling that comes to mind. I often think of clustering as a much more advanced version of EDA. We are not really sure what patterns exist in the data, so we supercharge standard EDA and see what patterns we uncover when leveraging machine learning. But we do not have a clean evaluation metric with clustering. We will need to interactively explore the clustering outputs, at least at first. At some point, we can determine a set number of clusters and pivot the clustering into a classification approach, but the more interesting piece here for me is the clustering itself.
 
     While I feel like there are loads of evaluative methods to explore, I am also interested in looking at some of the algorithms from the second data mining course. I have leveraged things like similarity scores in other projects, but I have not experimented with, for instance, FP growth, and it would be interesting to possibly pick a brand new algorithm to plop at the end of the pipeline and figure out what it means to evaluate that algorithm and what it reveals to us. But, similar to with unsupervised learning, my desire to explore synthetic data may mean leaving out some of the new algorithms from the second course for now. This would be an area to explore more in the next iteration of the project though.
 
