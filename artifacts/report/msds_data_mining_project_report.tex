@@ -96,152 +96,100 @@
     The general approach for the work in this project is to recreate a full data pipeline on a smaller scale to demonstrate what we could build out further in a production system. We use Python scripts to simulate pulling data from application programming interfaces (APIs), run databases in Docker --- including a very small scale warehouse --- to stand in for real-world database usage, and leverage Jupyter Notebooks for exploratory data analysis (EDA) and modeling, including our core focus of generative modeling to create synthetic tabular data. We hold off on saving the final tuned versions of models and putting them into automated pipelines, but that would be an extension that we would include in a production system. The main idea is to have all the pieces that we would normally tap into in a regular-enough end-to-end data system to provide a foundation from which to expand on later.
 
     \subsection{Pipeline Walkthrough}
+        You can view the source code at \href{https://github.com/jhleakakos/msds-data-mining-project}{https://github.com/jhleakakos/msds-data-mining-project}.
 
-    You can view the source code at \href{https://github.com/jhleakakos/msds-data-mining-project}.
+        We start by using a Python script as a placeholder for some sort of orchestration system. Separate orchestration software would be overkill right now, so we just import functions related to pulling data from the IPEDS website and call those from a dedicated orchestration script, but we would at some point possibly look into something like Apache Airflow to handle orchestration.
 
-    We start by using a Python script as a placeholder for some sort of orchestration system. Separate orchestration software would be overkill right now, so we just import functions related to pulling data from the IPEDS website and call those from a dedicated orchestration script, but we would at some point possibly look into something like Apache Airflow to handle orchestration.
+        IPEDS data already comes in a relatively relational format, and that lends itself well to loading it directly into a relational database serving as a data lake. We often work with databases in real-world projects, so it makes sense to include one here. We run a PostgreSQL database locally in Docker. Because Postgres connections are database-specific, we use one shared databse for this layer of the data lake and the coming data warehouse layer, using schemas to separate out the data lake from the data warehouse. This allows us to use structured query language (SQL) scripts to move data between the data lake and data warehouse without needing to use any other tooling, simplifying the handling of data in the database.
 
-    IPEDS data already comes in a relatively relational format, and that lends itself well to loading it directly into a relational database serving as a data lake. We often work with databases in real-world projects, so it makes sense to include one here. We run a PostgreSQL database locally in Docker. Because Postgres connections are database-specific, we use one shared databse for this layer of the data lake and the coming data warehouse layer, using schemas to separate out the data lake from the data warehouse. This allows us to use structured query language (SQL) scripts to move data between the data lake and data warehouse without needing to use any other tooling, simplifying the handling of data in the database.
+        We pull a subset of data out of the data lake and explore it in a Jupyter Notebook. The main goal here is to understand the already trimmed IPEDS data and determine where we want to start in terms of what gets moved into the warehouse. IPEDS data is vast and often difficult to work with, so it is important at this stage to narrow down the scope of the data to something reasonable and that allows us to keep our focus on the coming modeling. One big area of focus is on looking at null or missing flags in the IPEDS data and deciding how to handle those when we move data into the warehouse.
 
-    We pull a subset of data out of the data lake and explore it in a Jupyter Notebook. The main goal here is to understand the already trimmed IPEDS data and determine where we want to start in terms of what gets moved into the warehouse. IPEDS data is vast and often difficult to work with, so it is important at this stage to narrow down the scope of the data to something reasonable and that allows us to keep our focus on the coming modeling. One big area of focus is on looking at null or missing flags in the IPEDS data and deciding how to handle those when we move data into the warehouse.
+        We then use SQL script to move data from the data lake into a very rudimentary version of a dimensional model in the data warehouse, leveraging a standard star schema. Again, this is super small compared to what you would normally see in a real warehouse, but it lets us start to explore different ways of working with IPEDS data on a small scale before ramping up size and complexity in future itertations. As stated above, we use schemas in a shared database to separate out the data lake and data warehouse.
 
-    We then use SQL script to move data from the data lake into a very rudimentary version of a dimensional model in the data warehouse, leveraging a standard star schema. Again, this is super small compared to what you would normally see in a real warehouse, but it lets us start to explore different ways of working with IPEDS data on a small scale before ramping up size and complexity in future itertations. As stated above, we use schemas in a shared database to separate out the data lake and data warehouse.
+        Note that we do all the database work manually in SQL scripts. This is one of the first areas for improvement in future iterations. An easy start would be to store the current SQL scripts as stored procedures and call them either from an orchestration script or from update or insert triggers in the database. I went back and forth on adding some of these in, but, for the focus of the current project, it felt more important to keep an eye on the modeling instead of adding further complexity into the database layers. But this is probably the next improvement I would make, along with the improvement at the end of modeling mentioned later.
 
-    Note that we do all the database work manually in SQL scripts. This is one of the first areas for improvement in future iterations. An easy start would be to store the current SQL scripts as stored procedures and call them either from an orchestration script or from update or insert triggers in the database. I went back and forth on adding some of these in, but, for the focus of the current project, it felt more important to keep an eye on the modeling instead of adding further complexity into the database layers. But this is probably the next improvement I would make, along with the improvement at the end of modeling mentioned later.
+        Next we pull data out of the warehouse for modeling. We do another pass of EDA to explore how quirks in the data may affect generative modeling. We do see some issues and will speak about those in evaluation later.
 
-    Next we pull data out of the warehouse for modeling. We do another pass of EDA to explore how quirks in the data may affect generative modeling. We do see some issues and will speak about those in evaluation later.
+        We then start in on the main focus of the project --- generative modeling to create new tabular synthetic data that can stand in for or supplement IPEDS data. As stated earlier, this type of generative modeling is notoriously difficult, so, since the focus of this project is not on building an optimized generative model but instead on generating new IPEDS data, we leverage already existing libraries for the generative modeling --- the Synthetic Data Vault project and its CTGAN generative model in particular. I had decided early on to use CTGAN for generative modeling since I spent some time exploring the associated CTGAN paper in a previous project, but there are a number of models and ways to experiment with them, and I tested each of those out before pivoting to working with CTGAN.
 
-    We then start in on the main focus of the project --- generative modeling to create new tabular synthetic data that can stand in for or supplement IPEDS data. As stated earlier, this type of generative modeling is notoriously difficult, so, since the focus of this project is not on building an optimized generative model but instead on generating new IPEDS data, we leverage already existing libraries for the generative modeling --- the Synthetic Data Vault project and its CTGAN generative model in particular. I had decided early on to use CTGAN for generative modeling since I spent some time exploring the associated CTGAN paper in a previous project, but there are a number of models and ways to experiment with them, and I tested each of those out before pivoting to working with CTGAN.
+        While the notebook for generative modeling is not too long in its current state, much of my time outside of understanding the IPEDS data has gone into experimenting with the generative modeling. The SDV library's APIs are relatively straightforward to work with, but there are many hyperparameters to play around with. There are also decisions about dropping some data features to facilitate quicker and more accurate generative modeling, dropping categorical features with too many categories in particular.
 
-    While the notebook for generative modeling is not too long in its current state, much of my time outside of understanding the IPEDS data has gone into experimenting with the generative modeling. The SDV library's APIs are relatively straightforward to work with, but there are many hyperparameters to play around with. There are also decisions about dropping some data features to facilitate quicker and more accurate generative modeling, dropping categorical features with too many categories in particular.
+        I used feedback from generative modeling steps and from my understanding of what could negatively affect generative modeling to help further trim down the feature space of the IPEDS data used for modeling. For example, we cut out some of the categorical variables that would be interesting to explore in terms of meaning --- race/ethnicity and gender as two major groups of categorical variables --- because these increase the feature space and copmlexity of inter-feature relationships in a way that can abstract from the needs of the first pass of this project --- feeling like we have landed on a decision about if using our approach to synthetic IPEDS data generation is feasible.
 
-    I used feedback from generative modeling steps and from my understanding of what could negatively affect generative modeling to help further trim down the feature space of the IPEDS data used for modeling. For example, we cut out some of the categorical variables that would be interesting to explore in terms of meaning --- race/ethnicity and gender as two major groups of categorical variables --- because these increase the feature space and copmlexity of inter-feature relationships in a way that can abstract from the needs of the first pass of this project --- feeling like we have landed on a decision about if using our approach to synthetic IPEDS data generation is feasible.
+        While working on generative modeling, we also use the SDMetrics library to evaluate the generative modeling process and outputs. For example, we are able to provide a summary number for the quality of the synthetic data in terms of how close it is to the real data, we are able to visualize the GAN losses when training the CTGAN model, and we are able to visualize a given feature in both the real and synthetic data or pairs of features to see different angles into how similar or dissimilar the synthetic data is to or from the real data.
 
-    While working on generative modeling, we also use the SDMetrics library to evaluate the generative modeling process and outputs. For example, we are able to provide a summary number for the quality of the synthetic data in terms of how close it is to the real data. We are able to visualize the GAN losses when training the CTGAN model. We are also able to visualize a given feature in both the real and synthetic data or pairs of features to see different angles into how similar or dissimilar the synthetic data is to or from the real data.
+        Once we have our synthetic dataset, we move on to the final stages of the project. I am still working through this part of the project, but the plan is to spend some time testing out different modeling techniques on the real data, the synthetic data, and a combination of both datasets to see if we get similar outputs on all three. We have two numeric features that lend themselves to regression. We could pick some of the categorical features and experiment with classifications. And we could decide to branch out to something more complex such as clustering or association mining.
+
+        There are two competing outputs in this project. The focus is on creating synthetic data, but we do not want to lose sight of making sure that the data we synthesize could lead to useful insights. I have been exploring synthetic data in personal and school projects as well as using it at work, so it is fresh on my mind, and I would really like to include it here, but it is in tension with what we might see in a standard data mining pipeline. We will figure out the balance for the next report update.
+
+    \subsection{IPEDS Data}
+
+        Note: you can find a more detailed explanation of the IPEDS data we use in the appendix, and you can find a more detailed summary of the IPEDS domains we work with in data/data\_notes.md in the GitHub repository.
+
+        IPEDS has a ton of data available, so our first major task is to narrow that down to what we want to explore in this project. The approach we take is to pull in a subset of the three domains of IPEDS data we identified earlier: institutional characteristics, enrollments, and completions. There are many trade-offs in terms of pulling in more data or trimming down even to where we do.
+
+        My primary worry with IPEDS data is its complexity. Two examples are as follows. First, a number of files in the domains we explore have more than 100 features, and there are many more files across domains that we do not explore, so there are concerns related to the size of the data. Second, we have similar features across files that are more complicated to combine or compare than they may seem at first. For example, we remove race/ethnicity and gender disaggregates in order to simplify overall count data, but these are important features for answering research questions.
+
+        NCES provides preprocessing before making IPEDS data files available, including tasks such as imputation for missing values, creation of new features for estimated values to compare to reported values, and more. We will not worry about these initial preprocessing steps for this iteration of the project.
+
+        The more data we include now, the harder the first pass of modeling will be, so we take the strategy of building out a full pipeline with a small subset of data in such a way that it can be expanded later without too much extra effort. Since our primary goal is generating synthetic data, we are less worried about finding the most impactful IPEDS features in terms of meaning in this iteration, giving us some flexibility for the modeling dataset that we choose for now.
+
+        These are the three IPEDS domains that we work with:
+
+        \begin{itemize}
+            \item Institutional characteristics are the foundation of IPEDS data, providing information related to higher education institutions.
+            \item Completions look at students who complete degree or nondegree credentials. This differs from graduation rates that measure students who receive degrees and exclude students who attain nondegree credentials, certificates being a common nondegree credential.
+            \item 12-month enrollment data looks at unduplicated enrollment counts for students who start anytime in a 12-month period and including both degree- and nondegree-seeking students. IPEDS also has fall enrollment data, but we choose the wider timeframe. Since we include completions, a broader scope than graduations, we capture students who take a wider range of programs. 12-month enrollment will better capture nondegree students in particular.
+        \end{itemize}
+
+        IPEDS includes other domains of data that we do not use, including:
+
+        \begin{itemize}
+            \item Cost
+            \item Financial aid
+            \item Finance
+            \item Admissions
+            \item Outcome Measures
+            \item Graduation rates: students who graduate with a degree within 150\% of the estimated time for program completion
+            \item Graduation rates 200: students who graduate with a degree within 200\% of the estimated time for program completion
+            \item Fall enrollment: students who enroll in the fall, as compared to the 12-month enrollment we use where students enroll at any point during a 12-month period
+        \end{itemize}
+
+        Each of these domains has multiple data files, similar to the three domains we work with. The numbers of questions we can ask of IPEDS data multiplies when we pull in these other domains, but we will save those questions for future iterations of this project.
+
+    \subsubsection{Data Lake and Data Warehouse}
+        We will take a moment to talk about some aspects of the database work. We use a database to mimic what we would likely encounter in real-world mining pipelines.
+
+        We use two database layers: a data lake and a data warehouse, though the warehouse is a bit of a stretch in terms of the scope we have for it.
+
+        We narrow down the entirety of the data in the three chosen IPEDS domain before loading that subset into the data lake. This narrowing focuses on pulling out counts that lend themselves to a first pass of generative modeling and removeing features or groupings of features that have a large number of categories. We identify counts across any of the raw files along with disaggregates that appear manageable for the first pass of the project. The primary change from what we outline in the appendix compared to what we load into the data lake is that we remove race/ethnicity and gender disaggregates.
+
+        After the first pass of EDA, we need to add lookup tables for the categorical features that we choose to keep in the warehouse. The IPEDS dictionaries do not make this task as easy as it should be. Some features get dropped between the data lake and data warehouse due to lack of clear mappings for categorical values, even after searching for those on the IPEDS and NCES websites. Some of the mappings in the data dictionaries are clear, but others do not provide values for the descriptions that they list, so we do our best to try and figure out the mappings.
+
+        One example is for boolean features. Some features use 1s and 2s in the original data while other features use 1s and 3s. We use the initial pass of EDA to determine which category is more prevalent and use a judgement call to map that to what we believe should be most prevalent according to general understanding of higher education data.
+
+        In other cases, we need to use the IPEDS data explorer tool (\href{https://nces.ed.gov/ipeds/use-the-data}{https://nces.ed.gov/ipeds/use-the-data}) to check what values IPEDS has attributed to given institutions. For example, the raw data uses numbers for categorical values. When we are unclear if an institution is public, nonprofit private, or for-profit private, we can look that institution up on the IPEDS data explorer, check what value IPEDS has attributed to that institution, and then compare that description to the numeric value we find in the raw data. We repeat this for each categorical feature, building up mappings that we can add as lookup tables.
+
+        We then perform the second reduction in data, primarily removing a number of enrollment and completion count categories and totals, simplifying the data further and starting to zoom in on a few numeric features that we can use for regression during modeling. We map this data into a dimensional-ish model in the warehouse. This is mostly meant as a proof of concept, and it mirrors a setup we could likely run into in real-world applications.
+
+        We limit the numeric aggregates we use in the warehouse, only focusing on those that we want to synthesize during generative modeling. We also return to the IPEDS data explorer tool to sanity check the totals we get for enrollments and completions. It is not immediately clear the best way to group across the data from each of the tables in the data lake, mostly due to the issue of unclear categories for categorical features mentioned in the previous paragraph. So we test out different aggregations and compare the sums to what we see in the IPEDS data explorer too. Our counts end up higher than what we see in that tool, but we end up in a reasonable ballpark that lets us finish up the warehouse for this iteration of the project. For example, the top 10 largest institutions by enrollment in our warehouse match those that we see in external sources.
+
+        We model the dimension table for institutional characteristics as a slowly changing dimension (SCD) since we expect that some of the values in this table could change for a given institution, but those changes are unlikely to be common or frequent. We expect enrollment and completion counts to change between years, but we do not typically expect values describing insitutions to change. We will not need to leverage this SCD in this pass of the project since we stick with only working with 2023 data, but we will see some changes when we start adding in more data.
+
+        Note that the appendix has details on the features that we work with at the data lake and data warehouse steps.
+
+    \subsubsection{Generative Modeling}
+
+    Talk about modeling, probably adding a new subsection to go into detail on synthetic data and detail on regression/classification/clustering
+    talk about using single-table generative models from SDV, simplifying first pass of modeling
 
 
 
-
-
-
-
+    \subsubsection{Data Analysis or Business Intelligence}
 
     Is synthetic data generative modeling enough, or do we need to keep some extra modeling piece? If the latter, can it be more of a demo or POC than real analysis?
 
 
-
-
-
-
-
-    The next step is to explore the outputs of the pipeline. It occurs to me that there are two competing outputs in this project: synthetic IPEDS data and standard evaluative findings. We will need to find a balance here, so we may limit the amount of regression, classification, or clustering we do to leave space for the synthetic data generative modeling, possibly demoing a smaller example of how we would glean insights out of the synthetic dataset using classification, for example, rather than adding more scope into that outputs after the generative modeling. The final outputs I have a sense will work well with the synthetic IPEDS data are regression for number of enrollments or degree completions, clustering to find groupings of institutions that we should keep an eye on, and classification for putting institutions into those groupings.
-
-    I have been exploring synthetic data in personal and school projects as well as using it at work, so it is fresh on my mind, and I would really like to include it here, but, as said above, it is in tension with what we might see in a standard data mining pipeline. We will need to pull data out of the warehouse, import the synthetic data libraries, run the generative modeling, and then possibly load the synthetic data back into the database. This area has a bit of a question mark as to how much scope it will take up. I feel comfortable with how the generative modeling will work, but we will need to explore performance with IPEDS data in particular.
-
-    The areas I am keeping an eye on here are the extra loop of preprocessing in the database, the inclusion of synthetic data, and narrowing down the final outputs. The ideas in this section are fine for now, but we need to make these more concrete as we begin digging into the data.
-
-    \subsection{updates for proposed work}
-
-        Can reference technical details section in appendix to fill in from here
-
-        Why synthesize the IPEDS data we use instead of student-level data, the area where we will see a real drop off in coming years? How are aggregates in IPEDS different from student-level data?
-
-        handling different null flags or binary encodings even in same files (good use for slide, talking about data issues in general)
-
-        talk about dimensional-ish modeling (good use for slide)
-
-        goal of testing out mini data mart layer as well for whichever subset we want to synthesize
-
-        call out emphasis on db work since we are mimicing a real-world mining pipeline that will likely rely heavily on db tech
-
-        talk about slowly changing dimensions for institutional characteristics between years in particular and modeling decisions related to that
-
-        first eda from data lake to warehouse shows that the expected groupings aren't how the appear. for example, when you sum for all the enrollment rows in effy2023.csv for an institution, the total is way higher than is reasonable and than what we see on the IPEDS data explorer tool on their website. The dictionaries aren't super clear about how this should happen or how to properly use all of the rows.
-
-        use IPEDS data explorer tool to sanity check the numbers we use for modeling. Our numbers are higher than what we see in that tool, but we are using 12-month enrollment compared to the tool's fall enrollment, so we are likely close enough.
-
-        our enrollment numbers are higher, but our top 10 by enrollment match what we see on ipeds and other lists of schools by enrollment
-
-        talk about using single-table generative models from SDV, simplifying first pass of modeling
-
-        talk about not wanting synthetic data to be 100 percent accurate due to desired trade-offs for privacy
-
-        increases from high 70 percent to above for scores when dropping institution name and CBSA due to high number of categories
-
-        Talk about: data understanding (including stats and vis), data preprocessing and steps taken on raw data, emphasize that we do use warehousing and how
-
-        Talk about modeling, probably adding a new subsection to go into detail on synthetic data and detail on regression/classification/clustering
-
-        Pattern evaluation: effectiveness, efficiency
-
-        Emphasize where the project currently is at when updating report and slides
-
-        Emphasize analytical thinking, reasoning behind choices, process, method, results
-
-        Talk about how to evaluate generative output -- machine learning score and how that fits in with other outputs
-
-        pick some subsections for this section to clarify items here
-
-    \subsection{IPEDS Data}
-        IPEDS has a ton of data available, so our first major task is to narrow that down to what we want to explore in this project. The approach we take is to pull in a subset of the three domains of IPEDS data we identified earlier: institutional characteristics, enrollments, and completions. There are a ton of trade-offs in terms of pulling in more data or trimming down even to where we do.
-
-        My primary worry with IPEDS data is its complexity. Two examples are as follows. A number of files in the domains we explore have more than 100 features, and there are many more files across domains that we do not explore, so there are potential concerns related to the size of the data. Next, we have similar features across files. For example, we have breakdowns by race/ethnicity and gender and across different values for the primary attribute in files, and considering ways to combine these or compare across them are more complicated than they may seem at first.
-
-        The more data we include now, the harder the first pass of modeling will be, so we take the strategy of building out a full pipeline with a small subset of data in such a way that it can be expanded later without too much extra effort. Further, since our primary goal is generating synthetic data, we are less worried about finding the most impactful IPEDS features in terms of meaning, so we have some flexibility for the dataset that we choose for now.
-
-        \subsubsection{Chosen Domains}
-
-            Institutional characteristics are the foundation of IPEDS data, providing information related to higher education institutions.
-
-            Next, we use 12-month enrollment data, looking at unduplicated enrollment counts for students who start anytime in a 12-month period and including both degree- and nondegree-seeking students. IPEDS also have fall enrollment data, but we choose the wider timeframe. Since we also include completions instead of graduations, we capture students who take a wider range of programs. 12-month enrollment will better capture nondegree students in particular.
-
-            Finally, we use completions, looking at students who complete degree or nondegree credentials. This differs from graduation rates that measure students who receive degrees and excluding students who attain nondegree credentials, certificates being a common nondegree credential.
-
-
-
-
-
-            The goal for now is to continue to narrow down data within each of these domains, building towards a working dataset. The general idea is to have one row per institution, and we will need to group across rows in some files to make that happen. For example, some files have more than one row per institution, so we need to decide if it is appropriate to smoosh all of the rows per insititution together in those files and sum column values or if we need a more complicated approach. We figure these steps out doing the first round of EDA in the database.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        \subsubsection{What's Left from IPEDS}
-
-            IPEDS includes other domains of data, including:
-
-            \begin{itemize}
-                \item Cost
-                \item Financial aid
-                \item Finance
-                \item Admissions
-                \item Outcome Measures
-                \item Graduation rates: students who graduate with a degree within 150\% of the estimated time for program completion
-                \item Graduation rates 200: students who graduate with a degree within 200\% of the estimated time for program completion
-                \item Fall enrollment (as discussed above)
-            \end{itemize}
-
-            Each of these domains has multiple data files, similar to the three domains we are working with. The numbers of questions we can ask of IPEDS data multiplies when we pull in these other domains, but we will save those questions for future iterations of this project.
-
-            These other domains may also pose questions related to synthesizing data for them.
-
-        \subsubsection{Leftover Thoughts}
-
-            NCES provides preprocessing before making IPEDS data files available, including tasks such as imputation for missing values, creation of new features for estimated values to compare to reported values, and more. We will not worry about these initial preprocessing steps for this iteration of the project.
-
-            For each of the files we keep, we remove gender and race/ethnicity disaggregates. These are important features for answering meaning questions with IPEDS, but we remove them in order to simplify the analysis scope in this iteration of the project.
-
-            For a more detailed summary of the IPEDS domains we work with, please read data/data\_notes.md in the GitHub repository.
 
 \section{Evaluation}
 
@@ -252,6 +200,17 @@
 
     Summary model score
     SDMetrics numbers or visualizations
+
+    Talk about how to evaluate generative output -- machine learning score and how that fits in with other outputs
+
+    Pattern evaluation: effectiveness, efficiency
+
+    talk about not wanting synthetic data to be 100 percent accurate due to desired trade-offs for privacy
+
+    increases from high 70 percent to above for scores when dropping institution name and CBSA due to high number of categories
+
+
+
 
 
     The first evaluations will capture how similar the synthetic data is to the real data. We will explore the evaluation metrics in the Synthetic Data Vault Project, and, on top of those metrics, a couple of extra candidates that stand out are per-attribute comparisons and machine learning score. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as mean or standard deviation, and determine the quality of the synthetic data based on how close these measures are across the datasets. Machine learning score trains classifiers on the real and synthetic datasets and compares the performance of those models. For example, if we use both classifiers to check something like accuracy or F1 score on a held-out test set, we can evaluate how similar the synthetic data is to the real data based on comparing those scores.
@@ -273,6 +232,9 @@
 \section{Discussion}
 
 
+    timeline
+    challenges
+    alternatives and backup plan
 
 
 
@@ -288,14 +250,19 @@
 
     To wrap up with an explicit acknowledgment of risks for my projects, the biggets worry is that the scope grows to an unruly size, so there are a number of comments in this report speaking to ways to keep that in check, spanning from stricter time scoping to simplifying the data to sticking with easier-to-implement modeling.
 
-    \subsubsection{Warehousing}
-    \subsubsection{Generative Modeling}
-    \subsubsection{Data Analysis or Business Intelligence}
 
 \section{Conclusion}
 
 
+    project summary
+    key findings
+    future work
+
     This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses
+
+    Emphasize where the project currently is at when updating report and slides
+
+    Why synthesize the IPEDS data we use instead of student-level data, the area where we will see a real drop off in coming years? How are aggregates in IPEDS different from student-level data?
 
 
 
@@ -311,7 +278,7 @@
 \appendix
 
 \section{IPEDS Fields}
-    The summaries for files and fields here come from each file's associated data dictionary. Note that the biggest difference between the list here and the larger summary in data/data_notes.md in the source repository is that we drop gender and race/ethnicity disaggregates here.
+    The summaries for files and fields here come from each file's associated data dictionary. Note that the biggest difference between the list here and the larger summary in data/data\_notes.md in the source repository is that we drop gender and race/ethnicity disaggregates here.
 
     Domain: Institutional Characteristics
 
@@ -343,7 +310,7 @@
         \item OPENADMP: open admission policy
     \end{itemize}
 
-    ICyyyy_PY: student charges by program
+    ICyyyy\_PY: student charges by program
 
     \begin{itemize}
         \item UNITID: unique institutional identifier
@@ -367,7 +334,7 @@
         \item EFYTOTLT: total students enrolled for credit
     \end{itemize}
 
-    EFFYyyyy_DIST: unduplicated 12-month enrollment headcount by distance education status and level of student
+    EFFYyyyy\_DIST: unduplicated 12-month enrollment headcount by distance education status and level of student
 
     \begin{itemize}
         \item UNITID: unique institutional identifier
@@ -378,7 +345,7 @@
         \item EFYDENON: students not enrolled in any distance education courses
     \end{itemize}
 
-    EFFYyyyy_HS: unduplicated 12-month enrollment headcount of dual credit students; subset of the nondegree and non-certificate-seeking students from EFFY2023
+    EFFYyyyy\_HS: unduplicated 12-month enrollment headcount of dual credit students; subset of the nondegree and non-certificate-seeking students from EFFY2023
 
     \begin{itemize}
         \item UNITID: unique institutional identifier
@@ -398,7 +365,7 @@
 
     Domain: Completions
 
-    Cyyyy_A: number of awards by type of program, level of award (degree or certificate), first or second major, by race/ethnicity, and by gender
+    Cyyyy\_A: number of awards by type of program, level of award (degree or certificate), first or second major, by race/ethnicity, and by gender
 
     \begin{itemize}
         \item UNITID: unique institutional identifier
@@ -408,14 +375,14 @@
         \item CTOTALT: awards/degrees conferred to all recipients
     \end{itemize}
 
-    Cyyyy_B: number of students who completed any degree or certificate by race/ethnicity and gender
+    Cyyyy\_B: number of students who completed any degree or certificate by race/ethnicity and gender
 
     \begin{itemize}
         \item UNITID: unique institutional identifier
         \item CSTOTLT: number of students receiving awards/degrees
     \end{itemize}
 
-    Cyyyy_C: number of students receiving a degree or certificate by level of award and race/ethnicity, gender, and age
+    Cyyyy\_C: number of students receiving a degree or certificate by level of award and race/ethnicity, gender, and age
 
     \begin{itemize}
         \item UNITID: unique institutional identifier
@@ -463,7 +430,7 @@
             \item HDyyyy.CBSA: core based statistical area (not using during actual modeling because of the number of unique categories)
             \item ICyyyy.CNTLAFFI: institution control or affiliation (public, private non-profit, etc)
             \item EFFYyyyy.EFYTOTLT: total students enrolled for credit
-            \item Cyyyy_B.CSTOTLT: number of students receiving awards/degrees
+            \item Cyyyy\_B.CSTOTLT: number of students receiving awards/degrees
         \end{itemize}
 
 \end{document}
