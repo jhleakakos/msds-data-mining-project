@@ -95,9 +95,9 @@
 
     The general approach for the work in this project is to recreate a full data pipeline on a smaller scale to demonstrate what we could build out further in a production system. We use Python scripts to simulate pulling data from application programming interfaces (APIs), run databases in Docker --- including a very small scale warehouse --- to stand in for real-world database usage, and leverage Jupyter Notebooks for exploratory data analysis (EDA) and modeling, including our core focus of generative modeling to create synthetic tabular data. We hold off on saving the final tuned versions of models and putting them into automated pipelines, but that would be an extension that we would include in a production system. The main idea is to have all the pieces that we would normally tap into in a regular-enough end-to-end data system to provide a foundation from which to expand on later.
 
-    \subsection{Pipeline Walkthrough}
-        You can view the source code at \href{https://github.com/jhleakakos/msds-data-mining-project}{https://github.com/jhleakakos/msds-data-mining-project}.
+    You can view the source code at \href{https://github.com/jhleakakos/msds-data-mining-project}{https://github.com/jhleakakos/msds-data-mining-project}.
 
+    \subsection{Pipeline Walkthrough}
         We start by using a Python script as a placeholder for some sort of orchestration system. Separate orchestration software would be overkill right now, so we just import functions related to pulling data from the IPEDS website and call those from a dedicated orchestration script, but we would at some point possibly look into something like Apache Airflow to handle orchestration.
 
         IPEDS data already comes in a relatively relational format, and that lends itself well to loading it directly into a relational database serving as a data lake. We often work with databases in real-world projects, so it makes sense to include one here. We run a PostgreSQL database locally in Docker. Because Postgres connections are database-specific, we use one shared databse for this layer of the data lake and the coming data warehouse layer, using schemas to separate out the data lake from the data warehouse. This allows us to use structured query language (SQL) scripts to move data between the data lake and data warehouse without needing to use any other tooling, simplifying the handling of data in the database.
@@ -123,8 +123,7 @@
         There are two competing outputs in this project. The focus is on creating synthetic data, but we do not want to lose sight of making sure that the data we synthesize could lead to useful insights. I have been exploring synthetic data in personal and school projects as well as using it at work, so it is fresh on my mind, and I would really like to include it here, but it is in tension with what we might see in a standard data mining pipeline. We will figure out the balance for the next report update.
 
     \subsection{IPEDS Data}
-
-        Note: you can find a more detailed explanation of the IPEDS data we use in the appendix, and you can find a more detailed summary of the IPEDS domains we work with in data/data\_notes.md in the GitHub repository.
+        Note: you can find a file and field listing of the IPEDS data we use in the appendix, and you can find a more detailed summary of the IPEDS domains we work with in data/data\_notes.md in the GitHub repository.
 
         IPEDS has a ton of data available, so our first major task is to narrow that down to what we want to explore in this project. The approach we take is to pull in a subset of the three domains of IPEDS data we identified earlier: institutional characteristics, enrollments, and completions. There are many trade-offs in terms of pulling in more data or trimming down even to where we do.
 
@@ -141,6 +140,8 @@
             \item Completions look at students who complete degree or nondegree credentials. This differs from graduation rates that measure students who receive degrees and exclude students who attain nondegree credentials, certificates being a common nondegree credential.
             \item 12-month enrollment data looks at unduplicated enrollment counts for students who start anytime in a 12-month period and including both degree- and nondegree-seeking students. IPEDS also has fall enrollment data, but we choose the wider timeframe. Since we include completions, a broader scope than graduations, we capture students who take a wider range of programs. 12-month enrollment will better capture nondegree students in particular.
         \end{itemize}
+
+        We choose these three domains since they give us a basic count of students coming into higher education institutions each year and the number of completions --- a proxy for a type of output --- within that same year.
 
         IPEDS includes other domains of data that we do not use, including:
 
@@ -178,16 +179,65 @@
 
         Note that the appendix has details on the features that we work with at the data lake and data warehouse steps.
 
-    \subsubsection{Data Analysis}
-        Will fill this section in more for the next pass of the report.
+    \subsubsection{Modeling and Analysis}
+        Since this project is focused on generating synthetic data, we end up shifting some of the scope that would be given to typical analysis to focus more on evaluating the generative modeling and its synthetic data output. I do have a list of questions related to feature importance in terms of enrollment and completion numbers as well as a range of classification and clustering experiments that I planned on testing out. But, the generative modeling, while easy enough in a technical sense using the libraries we take advantage of, ended up taking a lot longer in terms of understanding what was going on and how to responsibly impelement it in the pipeline.
 
-        This is the remaining chunk of work that I have to complete at this point. The current thinking is that we will lean into testing out different modeling or mining techniques across the real data, across the synthetic data, and across both combined together. The focus of this project is on synthesizing IPEDS data, so we need to explore how incorporating the synthetic data affects common output tasks that we will want to run on different subsets of IPEDS data.
-
-        Note that this will end up looking a lot like the machine learning score evaluation technique that we explained earlier. This means our modeling analysis will blur the line with evaluation for this project, but it will help us to gain more fluency in working with synthetic data generally and the use of the specific libraries we use with IPEDS data.
+        In terms of generative modeling, we end up generating a smaller synthetic dataset that is focused on a handful of categorical features related to institutional characteristics along with matching enrollment and completion numbers. I will raise some questions about this approach later in the discussion section, but, for this pass of the project, it allows us to double the amount of data we have in the real dataset, and, as we will see in the evaluation section, the synthetic data is sufficiently similar to the real data to either substitute for or supplement that real data.
 
         As a reminder, we are abstracting many of the details of generative modeling since that could be an entire project to itself, though we will call out how the data we work with could affect the generative modeling step.
 
+        Once we finish up generative modeling, we do test out linear regression to help evaluate the quality of the synthetic data. We start by confirming that there is enough of a linear relationship between the inputs and outputs to continue using a linear model. We then pull out a test set from the real data to check the trained linear models.
+
+        Next, we have two sets of regressions focusing on enrollment and completions. We split each of these two into three different training sets: the real data, the synthetic data, and a combination of the real and synthetic data. This leaves us with six total models to evaluate. We use mean squared error (MSE) and adjusted r-squared ($R^2_a$) to evaluate each model. The focus here is on checking if we see similar values for each of these metrics across all three training sets for a given model. If we do see this, then we have some evidence that the synthetic data is resulting in similar evaluative outputs as the real data, either on its own or in combination with the real data.
+
 \section{Evaluation}
+
+    GAN losses
+    Pick a feature or two and include the image in here
+    Pick a feature pair or two and include the image in here
+    100% score for diagnostic report, confirming the data is valid (explain valid)
+
+    evaluate quality gives 87.1%
+    87.2% score for column shapes
+    87.0% score for column pair trends
+    explain column shapes and column pair trends
+
+    quality and diagnostic reports
+    GAN losses
+    Pick a couple of images to display
+
+    Which column pair trends are most and least valuable in terms of score
+    Use visual to help identify these
+
+    Include main column shapes image that shows score for all features
+
+    TVComplement and KSComplement
+    TV is total variation distance (TVD) compares the probability of each category in the real and synthetic dataset and compares them
+    KS is Kolmogorov-Smirnov statistic that converts each numeric feature into a cumulative distribution function and finds the maximum distance between the CDFs
+    https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/tvcomplement
+    https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/kscomplement
+
+    StatisticSimilarity
+    Only for numeric columns
+    Can compare mean, median, or std between real and synthetic matching features
+    Measures the absolute value of the difference between the real and synthetic feature for the metric scaled to the range of the real feature
+    Can run on the two numeric target features
+    https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/statisticsimilarity
+
+    Skewed numeric features
+
+    Going back, we should probably train the synthetic data on a portion of the real data so that we have a completely held-out test set
+
+    Include modeling stats -- the three models are close to each other for each target feature
+    Check MSE and r-squared for each model for enrollments and completions
+    Explain what we are evaluating here
+
+
+
+
+
+
+
     The first evaluations will capture how similar the synthetic data is to the real data. We will explore the evaluation metrics in the Synthetic Data Vault Project, and, on top of those metrics, a couple of extra candidates that stand out are per-attribute comparisons and machine learning score. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as mean or standard deviation, and determine the quality of the synthetic data based on how close these measures are across the datasets. Machine learning score trains classifiers on the real and synthetic datasets and compares the performance of those models. For example, if we use both classifiers to check something like accuracy or F1 score on a held-out test set, we can evaluate how similar the synthetic data is to the real data based on comparing those scores.
 
     We can also look at more advanced evaluation metrics. One that has stood out to me predicting each feature in a dataset with all of the other features. If we find the predictive power in the real and synthetic datasets are similar, then, like above, that can give us a sense of how similar the datasets themselves are.
@@ -203,6 +253,19 @@
     While I feel like there are loads of evaluative methods to explore, I am also interested in looking at some of the algorithms from the second data mining course. I have leveraged things like similarity scores in other projects, but I have not experimented with, for instance, FP growth, and it would be interesting to possibly pick a brand new algorithm to plop at the end of the pipeline and figure out what it means to evaluate that algorithm and what it reveals to us. But, similar to with unsupervised learning, my desire to explore synthetic data may mean leaving out some of the new algorithms from the second course for now. This would be an area to explore more in the next iteration of the project though.
 
 \section{Discussion}
+
+
+    Do we generate one larger dataset and then push that into the warehouse? Do we generate a bunch of smaller datasets knowing that the cross-section between them earlier in the pipeline may get lost?
+    Appropriate and responsible ways to use generative modeling?
+    Could an individual institution take this work and use it in tandem with their internal student-level data to get a personalized picture?
+
+    In discussion section, emphasize that we did spend a lot more time on generative modeling and cut scope after to leave space for generative modeling exploration
+    In discussion, include what lessons we learned in this project
+
+
+
+
+
     My goal for this project is to stick within a 3-4 week limit, if possible. I tend to drag out projects, taking the opportunity to add increased complexity and explore new items I am curious about. But, while spending forever on projects is fun and educational, I do risk getting too comfortable with taking my time. I could benefit from descoping and focusing on getting smaller chunks working earlier and then deciding if it is worth expanding out from there.
 
     The first area to keep an eye on scope is with the data used in the project. We start by selecting three IPEDS domains among many. We then systematically trim the datasets down in stages, as described earlier. By the time we reach modeling, we have a dataset with 14 features. Two of those are numeric targets we can use for regression. We could also put some boundary cutoffs for those fields to aid with classification. We have a couple of more likely features in terms of explanatory power, and we have a few extras to test out in terms of importance. Keeping the dataset smaller helps keep the modeling stages more focused.
@@ -228,17 +291,17 @@
     I do want to call out that, since this report comes most of the way through the planning, design, and implementation of the project, I am hoping that there are not too many surprises left, if any. I have also already taken steps to mitigate my biggest worry of scope creep, so I am not as worried about that creeping back in at this point. It will require not letting final modeling take up too much space, but, fortunately, the project feels pretty robust as it is now, so there may be an opportunity to find a way to wrap things up soon.
 
 \section{Conclusion}
-    To recap, we are using three domains of IPEDS data to test out generative modeling to produce synthetic tabular data, preparing for the reality where we have less and less higher education data in the coming years. We set up a small sample of a full ETL pipeline, send the IPEDS data through, generate synthetic data, and do some exploratory modeling on that data. This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses in the future.
+    To recap, we are using three domains of IPEDS data to test out generative modeling to produce synthetic tabular data, preparing for the reality where we have less and less higher education data in the coming years. We set up a small sample of a full ETL pipeline, send the IPEDS data through, generate synthetic data, and do some exploratory modeling on that data. This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses in the future. I also leaned into the architecting portion of the project, focusing on system design rather than picking one area to prioritize above the rest, though we do lean into generative modeling as the new-ish piece that we incorporate here.
 
-    At this point, I am still experimenting with the outputs from the generative modeling. Most of the pipeline and project are complete, and the third iteration of this report and the associated slides will fill in details about modeling on the the synthetic data itself.
+    Overall, we have a full pipeline with hooks in it for future improvement, successful implementation of generative modeling along with evaluative metrics that support that claim, the ability to increase the scope of IPEDS data we work with, and a range of other questions and enhancements we can dig into after this iteration of the project. Incorporating generative modeling did add a fresh aspect for me into this work, and I am glad I did it, though it meant that I had to descope other areas to accommodate the new modeling steps.
 
-    The biggest findings so far have been some of what we expected to see: the IPEDS data contains a lot more complexity than what it looks like at first. We address this by descoping the data that we work with in this pass. In future iterations, we will incorporate much more IPEDS data. That will result in a more robust and complicated warehouse, generative modeling, and exploration of questions with the synthetic data. But, for now, the scope here feels healthy for a first iteration on a project of this sort.
+    The biggest findings have been some of what we expected to see: the IPEDS data contains a lot more complexity than what it looks like at first. We address this by descoping the data that we work with in this pass. In future iterations, we will incorporate much more IPEDS data. That will result in a more robust and complicated warehouse, generative modeling, and exploration of questions with the synthetic data. But, for now, the scope here feels healthy for a first iteration on a project of this sort. If I could go back and scope this project again, I would consider building two smaller projects and then combining them --- one project focused on IPEDS data and the other focused on generative modeling.
 
-    One area to call out that I do not plan to have an answer for in this project is how we would pivot from IPEDS institutional-level data to student-level data, the latter being the area where are likely to see the biggest drop-off in future years. When doing initial planning for this project, I expected that there would be a couple of obvious areas in which to pivot from IPEDS data to student-level data, but those areas have not revealed themselves. One issue is that student-level data by its nature of being scoped to individual students is not and should not be in large aggregated and publicly available data such as what we find on IPEDS, primarily for privacy concerns. There are many questions that the batch of IPEDS data in this project raise that could lead us to exploring student-level data, but I do not see any reason to go down that path at this point.
+    One area to call out that I do not plan to have an answer for in this iteration of the project is how we would pivot from IPEDS institutional-level data to student-level data, the latter being the area where are likely to see the biggest drop-off in future years. When doing initial planning for this project, I expected that there would be a couple of obvious areas in which to pivot from IPEDS data to student-level data, but those areas have not revealed themselves. One issue is that student-level data by its nature of being scoped to individual students is not and should not be in large aggregated and publicly available data such as what we find on IPEDS, primarily for privacy concerns.
 
-    That all said, while generating synthetic IPEDS data is interesting and valuable, it is likely that generating synthetic student-level data may be the real need in the future.
+    Probably the best path forward to include student-level data would be to modify the pipeline to prepare IPEDS data in such a way that individual institutions can clone the pipeline and incorporate their specific student-level data as needed. This idea has actually become my main area of interest for next steps after completing this project. It would require building out more utility functionality that lets users customize specifics in the pipeline. For instance, we could build a series of scripts that create separate SQL scripts or Python EDA scripts to incorporate new data, something akin to building a format for configuration that the system could be responsive to. But that would pivot us quite a bit away from the focus on generative modeling here, so we will leave it for a future iteration.
 
-    In terms of the synthetic data itself, while I am still working on that layer of the pipeline and project, so far it appears to work as desired, allowing us to create new data that is similar to the statistical trends we see in the real data. I have pulled in some of my higher education data experience when working with this batch of IPEDS data, but a first next step in a future iteration of the project would be to highlight areas where there are known difficulties and confusion with higher education data and exploring how the generative modeling handles those. And, as said above, the pipeline and approach here could use thorough testing and enhancement related to incorporating a much wider range of IPEDS data, a more complicated warehouse, and improved scope and usage of generative modeling.
+    In terms of the synthetic data itself, so far it appears to work as desired, allowing us to work with new data that is similar to the statistical trends we see in the real data. I have pulled in some of my higher education data experience when working with this batch of IPEDS data, but a first next step in a future iteration of the project would be to highlight areas where there are known difficulties and confusion with higher education data and exploring how the generative modeling handles those. And, as said above, the pipeline and approach here could use thorough testing and enhancement related to incorporating a much wider range of IPEDS data, a more complicated warehouse, and improved scope and usage of generative modeling.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{msds_data_mining_project_report}
