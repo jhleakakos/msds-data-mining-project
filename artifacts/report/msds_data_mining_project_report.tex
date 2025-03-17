@@ -191,66 +191,139 @@
         Next, we have two sets of regressions focusing on enrollment and completions. We split each of these two into three different training sets: the real data, the synthetic data, and a combination of the real and synthetic data. This leaves us with six total models to evaluate. We use mean squared error (MSE) and adjusted r-squared ($R^2_a$) to evaluate each model. The focus here is on checking if we see similar values for each of these metrics across all three training sets for a given model. If we do see this, then we have some evidence that the synthetic data is resulting in similar evaluative outputs as the real data, either on its own or in combination with the real data.
 
 \section{Evaluation}
+    Due to scope and time, the evaluations in this iteration of the project focus on determining how good our synthetic data is. The original intention was to do through this and then do a full extra round of analysis on top of the data, including the synthetic data, to glean further insights, but we instead give more time and space to generative modeling and evaulation of those models and their outputs, sticking closer to the theme of the project.
 
-    GAN losses
-    Pick a feature or two and include the image in here
-    Pick a feature pair or two and include the image in here
-    100% score for diagnostic report, confirming the data is valid (explain valid)
+    We leverage evaluation metrics in the Synthetic Data Vault Project to evaluate the synthetic data, including determining how similar the synthetic data is to the real data. Earlier we spoke of per-attribute statistics and machine learning score. These two categories capture most of what we use to evaluate the synthetic data.
 
-    evaluate quality gives 87.1%
-    87.2% score for column shapes
-    87.0% score for column pair trends
-    explain column shapes and column pair trends
+    All of the metrics here aside from machine learning score come from SDMetrics, a library in the Synthetic Data Vault Project. The summaries of how the metrics here work are informed by the SDMetrics documentation.
 
-    quality and diagnostic reports
-    GAN losses
-    Pick a couple of images to display
+    We start by checking out the GAN losses when training the CTGAN model.
 
-    Which column pair trends are most and least valuable in terms of score
-    Use visual to help identify these
+    \begin{figure}[h]
+        \centering
+        \caption{GAN losses while training CTGAN model}
+        \Description{Line plot of generator and discriminator losses during CTGAN training.}
+        \includegraphics[width=\linewidth]{gan_losses}
+    \end{figure}
 
-    Include main column shapes image that shows score for all features
+    We see expected progression for the generator and discriminator loss. The discriminator loss stays relatively flat while the generator loss decreases. GAN training is notoriously difficulty, including for our use case, so it is promising that we see expected losses in a relatively short time. The final CTGAN we train finishes training in under a minute.
 
-    TVComplement and KSComplement
-    TV is total variation distance (TVD) compares the probability of each category in the real and synthetic dataset and compares them
-    KS is Kolmogorov-Smirnov statistic that converts each numeric feature into a cumulative distribution function and finds the maximum distance between the CDFs
-    https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/tvcomplement
-    https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/kscomplement
+    SDMetrics includes a diagnostic report that checks the validity of the synthetic data. This checks that primary key fields are unique, that numeric and datetime fields fall within the minimum and maximum of the range for that field in the real data, and that categorical features contain the same categories as in the real data (\href{https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included}{https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included}). The diagnostic report returns 100\%, indicating that our synthetic data is valid according to these conditions.
 
-    StatisticSimilarity
-    Only for numeric columns
-    Can compare mean, median, or std between real and synthetic matching features
-    Measures the absolute value of the difference between the real and synthetic feature for the metric scaled to the range of the real feature
-    Can run on the two numeric target features
-    https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/statisticsimilarity
+    Next we check out the SDMetrics quality report. This report checks how well the synthetic data matches the statistical properties found in the real data. These include the per-attribute comparisons we spoke about earlier. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as the mean, median, or standard deviation, and measure how similar these are between the dataset.
 
-    Skewed numeric features
+    \begin{table}
+        \caption{SDMetrics Quality Report}
+        \begin{tabular}{ll}
+            \toprule
+            Property & Score\\
+            \midrule
+            Column Shapes & 0.872 \\
+            Column Pair Trends & 0.870 \\
+            Overall Score & 0.871 \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
 
-    Going back, we should probably train the synthetic data on a portion of the real data so that we have a completely held-out test set
+    The quality report includes two primary metrics: column shapes and column pair trends (table 1). Column shapes performs the per-attribute metric from above. For categorical features, column shapes compares the probability of each category in a given feature in the real and synthetic data and compares them (\href{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/tvcomplement}{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/tvcomplement}). For numeric features, column shapes compares the cumulative distribution function (CDF) for the feature in the real and synthetic data and finds the maximum distance between them (\href{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/kscomplement}{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/kscomplement}). With the way these are calculated, higher numbers are better, and scores closer to 100\% mean the synthetic data is more statistically similar to the real data.
 
-    Include modeling stats -- the three models are close to each other for each target feature
-    Check MSE and r-squared for each model for enrollments and completions
-    Explain what we are evaluating here
+    \begin{table}
+        \caption{SDMetrics Column Shapes}
+        \begin{tabular}{lll}
+            \toprule
+            Column & Metric & Score \\
+            \midrule
+            year & TVComplement & 1.000 \\
+            state\_abbr & TVComplement & 0.882 \\
+            bea\_region & TVComplement & 0.897 \\
+            highest\_level & TVComplement & 0.938 \\
+            is\_degree\_offering & TVComplement & 0.945 \\
+            is\_hbcu & TVComplement & 0.973 \\
+            is\_tribal\_institution & TVComplement & 0.974 \\
+            geographic\_status & TVComplement & 0.892 \\
+            date\_closed & KSComplement & 0.167 \\
+            institutional\_category & TVComplement & 0.945 \\
+            control\_affiliation & TVComplement & 0.906 \\
+            enrollment & KSComplement & 0.887 \\
+            completions\_number\_students & KSComplement & 0.932 \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
 
+    \begin{figure}[h]
+        \centering
+        \caption{Column Shapes Scores}
+        \Description{Bar plots of SDMetrics column shapes scores}
+        \includegraphics[width=\linewidth]{column_shapes}
+    \end{figure}
 
+    Looking at table 2 and figure 2, we see some outliers. year gives perfect statistical similarity since every row has the same value at this point. Later iterations can load more than one year of data, so we want to keep this field around. date\_closed is mostly null, so that is likely why this field is so off --- there is not enough information in the real data for the model to learn meaningful patterns. The remaining features show more similarity between the real and syntethetic features indicated by their scores above 0.5. We do not want scores to be too close to 1.0 since that may result in a situation where the synthetic data is too real and can reveal confidential information from the real data. We end up dropping year and date\_closed for later modeling, so we are not worried about these features for now, and the remaining features look good.
 
+    \begin{figure}[h]
+        \centering
+        \caption{Column Shapes Plot for bea\_region}
+        \Description{Bar plot of SDMetrics column shape for bea\_region}
+        \includegraphics[width=\linewidth]{column_plot_bea_region}
+    \end{figure}
 
+    \begin{figure}[h]
+        \centering
+        \caption{Column Shapes Plot for enrollment}
+        \Description{Line plot of SDMetrics column shape for enrollment}
+        \includegraphics[width=\linewidth]{column_plot_enrollment}
+    \end{figure}
 
+    SDMetrics also evaluates column pairs between the real and synthetic data. These are not as informative for our current focus, though we would want to return to these when evaluating machine learning score, a metric we explain next. But first, here are two sample column pair plots.
 
+    \begin{figure}[h]
+        \centering
+        \caption{Column Pair Plot for enrollment and completions}
+        \Description{Scatter plot of SDMetrics column pair relationship for enrollment and completions}
+        \includegraphics[width=\linewidth]{column_pair_plot_enrollment_completion}
+    \end{figure}
 
-    The first evaluations will capture how similar the synthetic data is to the real data. We will explore the evaluation metrics in the Synthetic Data Vault Project, and, on top of those metrics, a couple of extra candidates that stand out are per-attribute comparisons and machine learning score. Per-attribute comparisons check the same feature in the real and synthetic datasets, calculate metrics such as mean or standard deviation, and determine the quality of the synthetic data based on how close these measures are across the datasets. Machine learning score trains classifiers on the real and synthetic datasets and compares the performance of those models. For example, if we use both classifiers to check something like accuracy or F1 score on a held-out test set, we can evaluate how similar the synthetic data is to the real data based on comparing those scores.
+    \begin{figure}[h]
+        \centering
+        \caption{Column Pair Plot for is\_degree\_offering and completions}
+        \Description{Box plot of SDMetrics column pair relationship for is\_degree\_offering and completions}
+        \includegraphics[width=\linewidth]{column_pair_plot_is_degree_offering_completion}
+    \end{figure}
 
-    We can also look at more advanced evaluation metrics. One that has stood out to me predicting each feature in a dataset with all of the other features. If we find the predictive power in the real and synthetic datasets are similar, then, like above, that can give us a sense of how similar the datasets themselves are.
+    Finishing out per-attribute metrics, SDMetrics can compute the statistical similarity of the mean, median, and standard deviation of a feature across the real and synthetic data, measure the absolute value of the difference between one of these metrics across the datasets and then scaled by the range of the real data for that feature (\href{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/statisticsimilarity}{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/statisticsimilarity}).
 
-    There are any number of other evaluative metrics for synthetic data. We will explore what is available with the Synthetic Data Vault Project that we use and will clarify here as we learn more during experimentation. It is worth calling out here that we could expand the evaluation of the synthetic data itself, taking up more scope from later steps such as regression or classification or such. The risk of not spending enough time evaluating the synthetic data is that we may end up testing out further modeling on an ill-fitting synthetic dataset.
+    Next we finish up with machine learning score, training regressors on the real data, synthetic data, and a combination of both and comparing the performance of them with one another. If we find the MSE or $R^2_a$ is similar between the three training sets, then we have some evidence that the synthetic data is similar enough to the real data to stand in for it or to be combined with it without reducing model performance.
 
-    At this stage, we have run a pass of generative modeling and added summary statistics and visualizations in the generative modeling notebook that you can explore in the source code. We also drop two features that we originally meant to include due to their negative effect on generative modeling. I will hold off on doing a more detailed summary until the next pass of this report, though the initial metrics look promising, with the summary numbers falling into ranges that hint that the synthetic data is picking up on patterns in the real data without mirroring the real data so closely that we run into privacy concerns.
+    \begin{table}
+        \caption{Machine Learning Score}
+        \begin{tabular}{llll}
+            \toprule
+            Metric & Training Set & Target & Value \\
+            \midrule
+            MSE & Real & Enrollment & 101,200,325.55 \\
+            MSE & Synthetic & Enrollment & 111,006,681.53 \\
+            MSE & Combined & Enrollment & 101,978,162.27 \\
+            $R^2_a$ & Real & Enrollment & 0.19 \\
+            $R^2_a$ & Synthetic & Enrollment & 0.11 \\
+            $R^2_a$ & Combined & Enrollment & 0.19 \\
+            MSE & Real & Completions & 116,066,105.90 \\
+            MSE & Synthetic & Completions & 133,327,873.83 \\
+            MSE & Combined & Completions & 129,922,536.22 \\
+            $R^2_a$ & Real & Completions & -0.01 \\
+            $R^2_a$ & Synthetic & Completions & -0.07 \\
+            $R^2_a$ & Combined & Completions & -0.04 \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
 
-    Moving on from synthetic data, my main intention is to build regression models on total enrollment and completion numbers per institution. I am curious to see which descriptive features help the most in predicting enrollments and completions. This would be a supervised regression task that we have built the warehouse and modeling dataset around. We can use metrics like mean squared error (MSE) or adjusted r-squared ($R^2_a$) to measure these regression models. These evaluations give us firm numbers we can use to determine how well our modeling is doing. We can compare across the three different groups of input data to see how well the synthetic data is doing, and we can focus on the modeling for the real data to see if we can glean insights out of the IPEDS data.
+    The values for each of the machine learning score metrics are pretty similar, hinting that the synthetic data is of pretty good quality. These are not necessarily the best linear regression models in terms of predicting enrollment or completion numbers, but the fact that the MSE and $R^2_a$ values are similar across the real, synthetic, and combined datasets means the generative modeling did its job.
 
-    I am not sure yet if we will include unsupervised learning techniques. Admittedly, the outputs for unsupervised learning can be more difficult to work with. Clustering is the first unsupervised modeling that comes to mind. I often think of clustering as a much more advanced version of EDA. We are not really sure what patterns exist in the data, so we supercharge standard EDA and see what patterns we uncover when leveraging machine learning. But we do not have a clean evaluation metric with clustering. We will need to interactively explore the clustering outputs, at least at first. At some point, we can determine a set number of clusters and pivot the clustering into a classification approach, but the more interesting piece here for me is the clustering itself.
+    We do have some skewed numeric features and imbalanced categorical features in the real data. CTGAN has techniques to handle these, and it looks like those were able to handle these aspects of the real data without trouble. We also dropped some features with a large number of categories since they were slowing down generative modeling without providing much upside.
 
-    While I feel like there are loads of evaluative methods to explore, I am also interested in looking at some of the algorithms from the second data mining course. I have leveraged things like similarity scores in other projects, but I have not experimented with, for instance, FP growth, and it would be interesting to possibly pick a brand new algorithm to plop at the end of the pipeline and figure out what it means to evaluate that algorithm and what it reveals to us. But, similar to with unsupervised learning, my desire to explore synthetic data may mean leaving out some of the new algorithms from the second course for now. This would be an area to explore more in the next iteration of the project though.
+    In future iterations, I would like to include a couple of changes. First is adding a new evaluation metric where we predict each feature in a dataset with all the other features, repeating this across the real, synthetic, and combined datasets. If we find the predictive power in all three datasets are similar, then that can give us further evidence that the generative modeling is producing high-quality synthetic data.
+
+    At this stage, we have run successful generative modeling on our subset of IPEDS data. These metrics look promising, with the summary numbers falling into ranges that hint that the synthetic data is picking up on patterns in the real data without mirroring the real data so closely that we run into privacy concerns.
+
+    I chose to descope any further modeling beyond these in order to keep the scope from ballooning. Experimenting with and evaluating the generative models and their synthetic data outputs took longer than expected, though the time was well spent. The generative modeling base that we have in this iteration of the project will serve us well when we look to expand use cases in the future.
 
 \section{Discussion}
 
@@ -261,6 +334,8 @@
 
     In discussion section, emphasize that we did spend a lot more time on generative modeling and cut scope after to leave space for generative modeling exploration
     In discussion, include what lessons we learned in this project
+
+    Should we train generative models on smaller or combined datasets? Do we lose anything by training them on smaller datasets later in the pipeline? Depends on use case. If we want the warehouse to have synthetic data, then we should model earlier. If we are using synthetic data only later for analysis, then maybe it doesn't matter as much.
 
 
 
