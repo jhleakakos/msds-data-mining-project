@@ -13,9 +13,9 @@
 \subtitle{Extending Higher Education Data with Synthetic Data at the Onset of the Demographic Cliff}
 
 \begin{abstract}
-    American higher education is coming to an impasse. Colleges and universities have seen enrollments grow as larger generations of Americans made their way through postsecondary education. Schools increased their academic offerings and student life activities. Faculty and staff members filled the needs for supporting increasing student enrollments. But there was an issue hiding behind all of this growth: what happens when student enrollments systematically fall?
+    American higher education is coming to an impasse. Colleges and universities have seen enrollments grow as larger generations of Americans made their way through postsecondary education. Schools increased their academic offerings and student life activities. Faculty and staff members filled the needs for supporting increasing student enrollments. But there was an issue hiding behind all of this growth: what happens when student enrollments systematically begin to drop?
 
-    The United States has seen declines in high school graduates and, therefore, reduced college applicants. Depending on who you listen to, this ranges from a demographic cliff ushering in an emergency in higher education to a slower decline in higher education enrollments that will play out over years. It is unclear what effect this will have on the near future of higher education. One expected consequence of these declines is that we will see smaller amounts of higher education data relative to previous years.
+    The United States has seen declines in high school graduates and, therefore, reduced college applicants. Depending on who you listen to, this ranges from a demographic cliff ushering in an emergency in higher education to a slower decline in higher education enrollments that will play out over years. It is not clear what effect this will have on the near future of higher education. One expected consequence of these declines is that we will see smaller amounts of higher education data relative to previous years.
 
     This project focuses on synthesizing Integrated Postsecondary Education Data System data from the National Center for Education Statistics. This data covers a vast range of information about higher education, and, while we will not look at student-level data --- one of the key areas for synthetic data after the demographic cliff hits --- we will start by generating synthetic data based on subsets of institution-related data. The goal is to show how we might address the diminishing data after the demographic cliff in order to continue higher education data analysis that relies on larger datasets.
 \end{abstract}
@@ -93,14 +93,14 @@
 
 \section{Proposed Work}
 
-    The general approach for the work in this project is to recreate a full data pipeline on a smaller scale to demonstrate what we could build out further in a production system. We use Python scripts to simulate pulling data from application programming interfaces (APIs), run databases in Docker --- including a very small scale warehouse --- to stand in for real-world database usage, and leverage Jupyter Notebooks for exploratory data analysis (EDA) and modeling, including our core focus of generative modeling to create synthetic tabular data. We hold off on saving the final tuned versions of models and putting them into automated pipelines, but that would be an extension that we would include in a production system. The main idea is to have all the pieces that we would normally tap into in a regular-enough end-to-end data system to provide a foundation from which to expand on later.
+    The general approach for the work in this project is to recreate a full data pipeline on a smaller scale to demonstrate what we could build out further in a production system. We use Python scripts to simulate pulling data from application programming interfaces (APIs), run databases in Docker --- including a very small scale warehouse --- to stand in for real-world database usage, and leverage Jupyter Notebooks for exploratory data analysis (EDA) and modeling, including our core focus of generative modeling to create synthetic tabular data. We hold off on saving the final tuned of models and integrating them into automated pipelines as a future enhancement. The main idea is to have all the pieces that we would normally tap into in a regular-enough end-to-end data system to provide a foundation from which to expand on later.
 
     You can view the source code at \href{https://github.com/jhleakakos/msds-data-mining-project}{https://github.com/jhleakakos/msds-data-mining-project}.
 
     \subsection{Pipeline Walkthrough}
         We start by using a Python script as a placeholder for some sort of orchestration system. Separate orchestration software would be overkill right now, so we just import functions related to pulling data from the IPEDS website and call those from a dedicated orchestration script, but we would at some point possibly look into something like Apache Airflow to handle orchestration.
 
-        IPEDS data already comes in a relatively relational format, and that lends itself well to loading it directly into a relational database serving as a data lake. We often work with databases in real-world projects, so it makes sense to include one here. We run a PostgreSQL database locally in Docker. Because Postgres connections are database-specific, we use one shared databse for this layer of the data lake and the coming data warehouse layer, using schemas to separate out the data lake from the data warehouse. This allows us to use structured query language (SQL) scripts to move data between the data lake and data warehouse without needing to use any other tooling, simplifying the handling of data in the database.
+        IPEDS data already comes in a relatively relational format, and that lends itself well to loading it directly into a relational database serving as a data lake. We often work with databases in real-world projects, so it makes sense to include one here. We run a PostgreSQL database locally in Docker. Because Postgres connections are database-specific, we use one shared database for this layer of the data lake and the coming data warehouse layer, using schemas to separate out the data lake from the data warehouse. This allows us to use structured query language (SQL) scripts to move data between the data lake and data warehouse without needing to use any other tooling, simplifying the handling of data in the database.
 
         We pull a subset of data out of the data lake and explore it in a Jupyter Notebook. The main goal here is to understand the already trimmed IPEDS data and determine where we want to start in terms of what gets moved into the warehouse. IPEDS data is vast and often difficult to work with, so it is important at this stage to narrow down the scope of the data to something reasonable and that allows us to keep our focus on the coming modeling. One big area of focus is on looking at null or missing flags in the IPEDS data and deciding how to handle those when we move data into the warehouse.
 
@@ -188,7 +188,7 @@
 
         Once we finish up generative modeling, we do test out linear regression to help evaluate the quality of the synthetic data. We start by confirming that there is enough of a linear relationship between the inputs and outputs to continue using a linear model. We then pull out a test set from the real data to check the trained linear models.
 
-        Next, we have two sets of regressions focusing on enrollment and completions. We split each of these two into three different training sets: the real data, the synthetic data, and a combination of the real and synthetic data. This leaves us with six total models to evaluate. We use mean squared error (MSE) and adjusted r-squared ($R^2_a$) to evaluate each model. The focus here is on checking if we see similar values for each of these metrics across all three training sets for a given model. If we do see this, then we have some evidence that the synthetic data is resulting in similar evaluative outputs as the real data, either on its own or in combination with the real data.
+        Next, we have two sets of regressions focusing on enrollment and completions. We split each of these two into three different training sets: the real data, the synthetic data, and a combination of the real and synthetic data. This leaves us with six total models to evaluate. We use mean squared error (MSE) and adjusted r-squared ($R^2$) to evaluate each model. The focus here is on checking if we see similar values for each of these metrics across all three training sets for a given model. If we do see this, then we have some evidence that the synthetic data is resulting in similar evaluative outputs as the real data, either on its own or in combination with the real data.
 
 \section{Evaluation}
     Due to scope and time, the evaluations in this iteration of the project focus on determining how good our synthetic data is. The original intention was to do through this and then do a full extra round of analysis on top of the data, including the synthetic data, to glean further insights, but we instead give more time and space to generative modeling and evaulation of those models and their outputs, sticking closer to the theme of the project.
@@ -206,7 +206,7 @@
         \includegraphics[width=\linewidth]{gan_losses}
     \end{figure}
 
-    We see expected progression for the generator and discriminator loss. The discriminator loss stays relatively flat while the generator loss decreases. GAN training is notoriously difficulty, including for our use case, so it is promising that we see expected losses in a relatively short time. The final CTGAN we train finishes training in under a minute.
+    We see expected progression for the generator and discriminator loss. The discriminator loss stays relatively flat while the generator loss decreases. GAN training is notoriously difficult, including for our use case, so it is promising that we see expected losses in a relatively short time. The final CTGAN we train finishes training in under a minute.
 
     SDMetrics includes a diagnostic report that checks the validity of the synthetic data. This checks that primary key fields are unique, that numeric and datetime fields fall within the minimum and maximum of the range for that field in the real data, and that categorical features contain the same categories as in the real data (\href{https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included}{https://docs.sdv.dev/sdmetrics/reports/diagnostic-report/whats-included}). The diagnostic report returns 100\%, indicating that our synthetic data is valid according to these conditions.
 
@@ -291,7 +291,7 @@
 
     Finishing out per-attribute metrics, SDMetrics can compute the statistical similarity of the mean, median, and standard deviation of a feature across the real and synthetic data, measure the absolute value of the difference between one of these metrics across the datasets and then scaled by the range of the real data for that feature (\href{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/statisticsimilarity}{https://docs.sdv.dev/sdmetrics/metrics/metrics-glossary/statisticsimilarity}).
 
-    Next we finish up with machine learning score, training regressors on the real data, synthetic data, and a combination of both and comparing the performance of them with one another. If we find the MSE or $R^2_a$ is similar between the three training sets, then we have some evidence that the synthetic data is similar enough to the real data to stand in for it or to be combined with it without reducing model performance.
+    Next we finish up with machine learning score, training regressors on the real data, synthetic data, and a combination of both and comparing the performance of them with one another. If we find the MSE or $R^2$ is similar between the three training sets, then we have some evidence that the synthetic data is similar enough to the real data to stand in for it or to be combined with it without reducing model performance.
 
     \begin{table}
         \caption{Machine Learning Score}
@@ -302,20 +302,20 @@
             MSE & Real & Enrollment & 101,200,325.55 \\
             MSE & Synthetic & Enrollment & 111,006,681.53 \\
             MSE & Combined & Enrollment & 101,978,162.27 \\
-            $R^2_a$ & Real & Enrollment & 0.19 \\
-            $R^2_a$ & Synthetic & Enrollment & 0.11 \\
-            $R^2_a$ & Combined & Enrollment & 0.19 \\
+            $R^2$ & Real & Enrollment & 0.19 \\
+            $R^2$ & Synthetic & Enrollment & 0.11 \\
+            $R^2$ & Combined & Enrollment & 0.19 \\
             MSE & Real & Completions & 116,066,105.90 \\
             MSE & Synthetic & Completions & 133,327,873.83 \\
             MSE & Combined & Completions & 129,922,536.22 \\
-            $R^2_a$ & Real & Completions & -0.01 \\
-            $R^2_a$ & Synthetic & Completions & -0.07 \\
-            $R^2_a$ & Combined & Completions & -0.04 \\
+            $R^2$ & Real & Completions & -0.01 \\
+            $R^2$ & Synthetic & Completions & -0.07 \\
+            $R^2$ & Combined & Completions & -0.04 \\
             \bottomrule
         \end{tabular}
     \end{table}
 
-    The values for each of the machine learning score metrics are pretty similar, hinting that the synthetic data is of pretty good quality. These are not necessarily the best linear regression models in terms of predicting enrollment or completion numbers, but the fact that the MSE and $R^2_a$ values are similar across the real, synthetic, and combined datasets means the generative modeling did its job.
+    The values for each of the machine learning score metrics are similar, hinting that the synthetic data is of sufficient quality. These are not necessarily the best linear regression models in terms of predicting enrollment or completion numbers, but the fact that the MSE and $R^2$ values are similar across the real, synthetic, and combined datasets means the generative modeling did its job.
 
     We do have some skewed numeric features and imbalanced categorical features in the real data. CTGAN has techniques to handle these, and it looks like those were able to handle these aspects of the real data without trouble. We also dropped some features with a large number of categories since they were slowing down generative modeling without providing much upside.
 
@@ -336,7 +336,7 @@
 
     Next is the use of the database. This is a personal thing for me, but I am more familiar working in databases over the years, so doing work in the database simplifies the amount of time needed for me to set up a production-esque system. We also run into databases everything in real-world systems, so a project that mirrors a production pipeline, even if on a very small scale, must have database tech included in it, in my experience.
 
-    Finally, a big area of scope reduction is at the end of the pipeline. I originally intended to implement both generative modeling and analytical modeling. Generative modeling is key to the focus of this project, but I was unclear if the project would feel incomplete if it did not have extra layers of analytical modeling as well. It was not until this final update for the project and deliverables that I decided to stick with the generative modeling and leave the analytical modeling until a future expansion of the project. Since I decided to explore generative modeling early in the planning stages, that took priority over analytical modeling, and the generative modeling itself took a significant chunk of time to familiarize myself with, experiment with, and implement. To add extra analytical modeling at this stage feels like it would balloon the scope and pull the focus of the project elsewhere.
+    Finally, a big area of scope reduction is at the end of the pipeline. I originally intended to implement both generative modeling and analytical modeling. Generative modeling is key to the focus of this project, but I was unclear if the project would feel incomplete if it did not have extra layers of analytical modeling as well. It was not until this final update for the project and deliverables that I decided to stick with the generative modeling and leave the analytical modeling until a future expansion of the project. Since I decided to explore generative modeling early in the planning stages, that took priority over analytical modeling, and the generative modeling itself took a significant chunk of time to learn, experiment with, and implement. To add extra analytical modeling at this stage feels like it would balloon the scope and pull the focus of the project elsewhere.
 
     Speaking of generative modeling, even after all the tinkering I did for this project, I still have some lingering questions. The first is where the generative modeling should happen. The approach in this project was to pull the analysis dataset out of the warehouse and synthesize more data mimicking that dataset. If we zoom out and think about a pipeline and warehouse that needs to be more general purpose, there is a case to synthesize data earlier, possibly even keeping real and synthetic fact and dimension tables in the warehouse. If the goal of the synthetic data is to distribrute a final dataset, then our approach here works well. If the goal is to incorporate synthetic data as a core piece of the warehouse, then we may want to synthesize data earlier.
 
@@ -355,7 +355,7 @@
 \section{Conclusion}
     To recap, we are using three domains of IPEDS data to test out generative modeling to produce synthetic tabular data, preparing for the reality where we have less and less higher education data in the coming years. We set up a small sample of a full ETL pipeline, send the IPEDS data through, generate synthetic data, and do some exploratory modeling on that data. This approach is probably over-engineered for the scope of this project, but it lays the groundwork for pulling in much more IPEDS data and running more complicated analyses in the future. I also leaned into the architecting portion of the project, focusing on system design rather than picking one area to prioritize above the rest, though we do lean into generative modeling as the new-ish piece that we incorporate here.
 
-    Overall, we have a full pipeline with hooks in it for future improvement, successful implementation of generative modeling along with evaluative metrics that support that claim, the ability to increase the scope of IPEDS data we work with, and a range of other questions and enhancements we can dig into after this iteration of the project. Incorporating generative modeling did add a fresh aspect for me into this work, and I am glad I did it, though it meant that I had to descope other areas to accommodate the new modeling steps.
+    Overall, we have a full pipeline with hooks in it for future improvement. We successfully implemented generative modeling along with evaluative metrics that support that show good performance. We can relatively easily increase the scope of IPEDS data we work with, at least in a technical sense. Incorporating generative modeling did add a fresh aspect for me into this work, and I am glad I did it, though it meant that I had to descope other areas to accommodate the new modeling steps.
 
     The biggest findings have been some of what we expected to see: the IPEDS data contains a lot more complexity than what it looks like at first. We address this by descoping the data that we work with in this pass. In future iterations, we will incorporate much more IPEDS data. That will result in a more robust and complicated warehouse, generative modeling, and exploration of questions with the synthetic data. But, for now, the scope here feels healthy for a first iteration on a project of this sort. If I could go back and scope this project again, I would consider building two smaller projects and then combining them --- one project focused on IPEDS data and the other focused on generative modeling.
 
